@@ -101,22 +101,21 @@
         <form id="comment-form" onsubmit="addComment(event)">
           <div class="form-row">
             <label for="comment-name">Your Name:</label>
-            <input type="text" id="comment-name" placeholder="Type your name here" required>
+            <input type="text" id="comment-name" placeholder="Type your name here" maxlength="60" required>
           </div>
           <div class="form-row">
             <label for="comment-text">Suggestion or Comment:</label>
-            <textarea id="comment-text" placeholder="Write your suggestion here..." required></textarea>
+            <textarea id="comment-text" placeholder="Write your suggestion here..." maxlength="1000" required></textarea>
           </div>
           <button class="button" type="submit">Submit Comment</button>
         </form>
+        <p id="comment-status" class="form-message" role="status" aria-live="polite">Connecting to shared comments...</p>
       </div>
 
       <!-- Comments list container -->
       <div style="max-width: 730px; margin: 30px auto;" id="comments-container">
         <h3 style="color: #173f57;">Visitor Suggestions:</h3>
-        <div id="comment-list">
-          <p style="color: #526977; font-style: italic;">No comments yet. Be the first to leave one!</p>
-        </div>
+        <div id="comment-list"></div>
       </div>
     </section>
   </main>
@@ -129,6 +128,9 @@
     </div>
   </footer>
  
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

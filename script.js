@@ -1,5 +1,5 @@
-var REVIEW_STORAGE_KEY = "travel-brochure-reviews";
-var CONTACT_NOTE_STORAGE_KEY = "travel-brochure-contact-notes";
+var sharedCommentsCollection = null;
+var sharedDatabase = null;
 var DESTINATIONS = {
   banaue: { name: "Banaue Rice Terraces (Ifugao)", baseRating: 5 },
   intramuros: { name: "Intramuros (Manila)", baseRating: 4.5 },
@@ -9,153 +9,116 @@ var DESTINATIONS = {
   samal: { name: "Samal (Davao City)", baseRating: 4.5 }
 };
 
-function readReviewStore() {
-  var storedReviews = window.localStorage.getItem(REVIEW_STORAGE_KEY);
-  if (!storedReviews) {
-    return {};
-  }
-
-  var reviews = JSON.parse(storedReviews);
-  if (!reviews || typeof reviews !== "object" || Array.isArray(reviews)) {
-    throw new Error("Saved reviews have an invalid format.");
-  }
-  return reviews;
-}
-
-function getDestinationReviews(reviewStore, destinationId) {
-  var reviews = reviewStore[destinationId] || [];
-  if (!Array.isArray(reviews)) {
-    throw new Error("Saved reviews for this destination have an invalid format.");
-  }
-  for (var i = 0; i < reviews.length; i++) {
-    var review = reviews[i];
-    if (!review || typeof review.name !== "string" ||
-        typeof review.review !== "string" ||
-        !Number.isInteger(review.rating) || review.rating < 1 || review.rating > 5) {
-      throw new Error("A saved review has invalid details.");
-    }
-  }
-  return reviews;
-}
-
-function loadContactNotes() {
-  var storedNotes = window.localStorage.getItem(CONTACT_NOTE_STORAGE_KEY);
-  if (!storedNotes) {
-    return [];
-  }
-
-  var notes = JSON.parse(storedNotes);
-  if (!Array.isArray(notes)) {
-    throw new Error("Saved notes have an invalid format.");
-  }
-  for (var i = 0; i < notes.length; i++) {
-    var note = notes[i];
-    if (!note || typeof note.name !== "string" ||
-        typeof note.topic !== "string" ||
-        typeof note.message !== "string") {
-      throw new Error("A saved note has invalid details.");
-    }
-  }
-  return notes;
-}
-
 function renderContactNotes() {
   var noteList = document.getElementById("submitted-note-list");
   if (!noteList) {
     return;
   }
 
-  noteList.textContent = "";
-  var notes;
-  try {
-    notes = loadContactNotes();
-  } catch (error) {
-    var errorMessage = document.createElement("p");
-    errorMessage.className = "notes-empty review-error";
-    errorMessage.textContent = "Saved notes could not be loaded. " + error.message;
-    noteList.appendChild(errorMessage);
-    console.error("Unable to load contact notes:", error);
+  if (!sharedDatabase) {
+    noteList.textContent = "Shared notes are unavailable until Firebase is configured.";
     return;
   }
 
-  if (!notes.length) {
-    var emptyMessage = document.createElement("p");
-    emptyMessage.className = "notes-empty";
-    emptyMessage.textContent = "No notes yet. Be the first to share a travel idea!";
-    noteList.appendChild(emptyMessage);
-    return;
-  }
+  sharedDatabase.collection("contactNotes")
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .onSnapshot(function (snapshot) {
+      try {
+        noteList.textContent = "";
+        if (snapshot.empty) {
+          var emptyMessage = document.createElement("p");
+          emptyMessage.className = "notes-empty";
+          emptyMessage.textContent = "No notes yet. Be the first to share a travel idea!";
+          noteList.appendChild(emptyMessage);
+          return;
+        }
 
-  notes.slice().reverse().forEach(function (note) {
-    var card = document.createElement("article");
-    card.className = "submitted-note-card";
+        snapshot.forEach(function (documentSnapshot) {
+          var note = documentSnapshot.data();
+          if (!note || typeof note.name !== "string" ||
+              typeof note.topic !== "string" || typeof note.message !== "string") {
+            throw new Error("A saved note has invalid details.");
+          }
 
-    var heading = document.createElement("div");
-    heading.className = "submitted-note-heading";
-    var name = document.createElement("h3");
-    name.textContent = note.name;
-    var topic = document.createElement("span");
-    topic.className = "tag";
-    topic.textContent = note.topic;
-    heading.appendChild(name);
-    heading.appendChild(topic);
-
-    var message = document.createElement("p");
-    message.textContent = note.message;
-    card.appendChild(heading);
-    card.appendChild(message);
-
-    if (note.createdAt) {
-      var date = document.createElement("time");
-      date.className = "submitted-note-date";
-      date.dateTime = note.createdAt;
-      date.textContent = new Date(note.createdAt).toLocaleDateString();
-      card.appendChild(date);
-    }
-    noteList.appendChild(card);
-  });
+          var card = document.createElement("article");
+          card.className = "submitted-note-card";
+          var heading = document.createElement("div");
+          heading.className = "submitted-note-heading";
+          var name = document.createElement("h3");
+          name.textContent = note.name;
+          var topic = document.createElement("span");
+          topic.className = "tag";
+          topic.textContent = note.topic;
+          heading.appendChild(name);
+          heading.appendChild(topic);
+          var message = document.createElement("p");
+          message.textContent = note.message;
+          card.appendChild(heading);
+          card.appendChild(message);
+          if (note.createdAt && typeof note.createdAt.toDate === "function") {
+            var date = document.createElement("time");
+            date.className = "submitted-note-date";
+            date.dateTime = note.createdAt.toDate().toISOString();
+            date.textContent = note.createdAt.toDate().toLocaleDateString();
+            card.appendChild(date);
+          }
+          noteList.appendChild(card);
+        });
+      } catch (error) {
+        noteList.textContent = "A saved note could not be displayed. " + error.message;
+        console.error("Unable to display shared contact notes:", error);
+      }
+    }, function (error) {
+      noteList.textContent = "Shared notes could not be loaded. Check your Firestore database and rules.";
+      console.error("Unable to load shared contact notes:", error);
+    });
 }
 
-function submitContactNote(event) {
+async function submitContactNote(event) {
   event.preventDefault();
   var form = event.currentTarget;
   var status = document.getElementById("form-message");
   var name = document.getElementById("visitor-name").value.trim();
-  var email = document.getElementById("visitor-email").value.trim();
   var topicSelect = document.getElementById("topic");
   var message = document.getElementById("visitor-message").value.trim();
 
-  if (!name || !email || !message) {
-    status.textContent = "Please complete all fields before sending your note.";
+  if (!sharedDatabase) {
+    status.textContent = "Shared notes are not connected. Configure Firebase before submitting.";
+    status.className = "form-message review-error";
+    status.style.display = "block";
+    return;
+  }
+  if (!name || name.length > 80 || !message || message.length > 1500) {
+    status.textContent = "Use a name up to 80 characters and a message up to 1,500 characters.";
     status.className = "form-message review-error";
     status.style.display = "block";
     return;
   }
 
-  var notes;
+  var submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  status.textContent = "Submitting your note...";
+  status.className = "form-message";
+  status.style.display = "block";
   try {
-    notes = loadContactNotes();
-    notes.push({
+    await sharedDatabase.collection("contactNotes").add({
       name: name,
       topic: topicSelect.options[topicSelect.selectedIndex].text,
       message: message,
-      createdAt: new Date().toISOString()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    window.localStorage.setItem(CONTACT_NOTE_STORAGE_KEY, JSON.stringify(notes));
+    form.reset();
+    status.textContent = "Your note was saved and is visible to other visitors.";
+    status.className = "form-message review-success";
   } catch (error) {
-    status.textContent = "Your note could not be saved. " + error.message;
+    status.textContent = "Your note could not be saved. Check your Firestore rules and internet connection.";
     status.className = "form-message review-error";
-    status.style.display = "block";
-    console.error("Unable to save contact note:", error);
-    return;
+    console.error("Unable to save shared contact note:", error);
+  } finally {
+    submitButton.disabled = false;
   }
-
-  renderContactNotes();
-  form.reset();
-  status.textContent = "Your note has been added below. It is saved in this browser only.";
-  status.className = "form-message review-success";
   status.style.display = "block";
-  document.getElementById("submitted-note-list").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function formatRating(rating) {
@@ -175,41 +138,45 @@ function ratingMarkup(destinationId) {
 
 function updateRegionRatings() {
   var ratings = document.querySelectorAll("[data-destination-rating]");
-  var reviewStore;
-  try {
-    reviewStore = readReviewStore();
-  } catch (error) {
-    console.error("Unable to load saved reviews:", error);
+  if (!ratings.length || !sharedDatabase) {
+    return;
+  }
+
+  sharedDatabase.collection("reviews").get().then(function (snapshot) {
+    var reviewsByDestination = {};
+    snapshot.forEach(function (documentSnapshot) {
+      var review = documentSnapshot.data();
+      if (review && DESTINATIONS[review.destinationId] &&
+          Number.isInteger(review.rating) && review.rating >= 1 && review.rating <= 5) {
+        reviewsByDestination[review.destinationId] =
+          reviewsByDestination[review.destinationId] || [];
+        reviewsByDestination[review.destinationId].push(review.rating);
+      }
+    });
+
+    for (var i = 0; i < ratings.length; i++) {
+      var destinationId = ratings[i].getAttribute("data-destination-rating");
+      var destinationRatings = reviewsByDestination[destinationId] || [];
+      if (destinationRatings.length) {
+        var average = destinationRatings.reduce(function (total, rating) {
+          return total + rating;
+        }, 0) / destinationRatings.length;
+        ratings[i].textContent = "Ratings: " +
+          starText(average) +
+          " (" + formatRating(average) + "/5)";
+      }
+    }
+  }).catch(function (error) {
+    console.error("Unable to load shared destination ratings:", error);
     var regionDisplay = document.getElementById("region-display");
     if (regionDisplay) {
       var errorMessage = document.createElement("p");
       errorMessage.className = "form-message review-error";
-      errorMessage.textContent = "Saved reviews could not be loaded. " + error.message;
+      errorMessage.textContent = "Shared ratings could not be loaded. Check your Firestore database and rules.";
       errorMessage.style.display = "block";
       regionDisplay.insertBefore(errorMessage, regionDisplay.firstChild);
     }
-    return;
-  }
-
-  for (var i = 0; i < ratings.length; i++) {
-    var destinationId = ratings[i].getAttribute("data-destination-rating");
-    var destinationReviews;
-    try {
-      destinationReviews = getDestinationReviews(reviewStore, destinationId);
-    } catch (error) {
-      console.error("Unable to load saved reviews:", error);
-      continue;
-    }
-
-    if (destinationReviews.length) {
-      var average = destinationReviews.reduce(function (total, review) {
-        return total + Number(review.rating);
-      }, 0) / destinationReviews.length;
-      ratings[i].textContent = "Ratings: " +
-        starText(average) +
-        " (" + formatRating(average) + "/5)";
-    }
-  }
+  });
 }
 
 /* --- MOBILE MENU FUNCTION --- */
@@ -309,6 +276,35 @@ function showRegion(region) {
   applyRevealEffects();
 }
 
+function loadSharedFirebase() {
+  if (sharedDatabase) {
+    return true;
+  }
+  if (!window.FIREBASE_CONFIG ||
+      Object.keys(window.FIREBASE_CONFIG).some(function (key) {
+        return typeof window.FIREBASE_CONFIG[key] !== "string" ||
+          !window.FIREBASE_CONFIG[key] ||
+          window.FIREBASE_CONFIG[key].indexOf("PASTE_") !== -1;
+      })) {
+    return false;
+  }
+  if (!window.firebase || !firebase.firestore) {
+    console.error("Firebase SDK is unavailable.");
+    return false;
+  }
+
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(window.FIREBASE_CONFIG);
+    }
+    sharedDatabase = firebase.firestore();
+    return true;
+  } catch (error) {
+    console.error("Unable to initialize Firebase:", error);
+    return false;
+  }
+}
+
 function renderDestinationReviews(destinationId) {
   var destination = DESTINATIONS[destinationId];
   var title = document.getElementById("review-destination-title");
@@ -326,32 +322,54 @@ function renderDestinationReviews(destinationId) {
 
   title.textContent = destination.name;
 
-  var reviewStore;
-  try {
-    reviewStore = readReviewStore();
-  } catch (error) {
-    status.textContent = "Saved reviews could not be loaded. " + error.message;
+  if (!sharedDatabase) {
+    status.textContent = "Shared reviews are not set up. Add your Firebase web app config to firebase-config.js.";
     status.className = "form-message review-error";
     status.style.display = "block";
-    list.textContent = "Reviews are unavailable until the saved review data can be read.";
+    list.textContent = "Reviews are unavailable until Firebase is configured.";
     form.hidden = true;
-    console.error("Unable to load saved reviews:", error);
     return;
   }
 
-  var reviews;
-  try {
-    reviews = getDestinationReviews(reviewStore, destinationId);
-  } catch (error) {
-    status.textContent = "Saved reviews could not be loaded. " + error.message;
-    status.className = "form-message review-error";
-    status.style.display = "block";
-    list.textContent = "Reviews are unavailable until the saved review data can be read.";
-    form.hidden = true;
-    console.error("Unable to load saved reviews:", error);
-    return;
-  }
+  sharedDatabase.collection("reviews")
+    .where("destinationId", "==", destinationId)
+    .onSnapshot(function (snapshot) {
+      try {
+        var reviews = [];
+        snapshot.forEach(function (documentSnapshot) {
+          var review = documentSnapshot.data();
+          if (!review || typeof review.name !== "string" ||
+              typeof review.review !== "string" ||
+              !Number.isInteger(review.rating) || review.rating < 1 || review.rating > 5) {
+            throw new Error("A saved review has invalid details.");
+          }
+          review.createdAt = review.createdAt && typeof review.createdAt.toDate === "function"
+            ? review.createdAt.toDate().toISOString()
+            : "";
+          reviews.push(review);
+        });
+        reviews.sort(function (first, second) {
+          return (second.createdAt || "").localeCompare(first.createdAt || "");
+        });
+        displayDestinationReviews(destination, reviews, summary, list);
+        status.textContent = "";
+        status.style.display = "none";
+      } catch (error) {
+        status.textContent = "A saved review could not be displayed. " + error.message;
+        status.className = "form-message review-error";
+        status.style.display = "block";
+        console.error("Unable to display shared reviews:", error);
+      }
+    }, function (error) {
+      status.textContent = "Shared reviews could not be loaded. Check your Firestore database and rules.";
+      status.className = "form-message review-error";
+      status.style.display = "block";
+      list.textContent = "Reviews are unavailable until the shared review data can be read.";
+      console.error("Unable to load shared reviews:", error);
+    });
+}
 
+function displayDestinationReviews(destination, reviews, summary, list) {
   var average = reviews.length
     ? reviews.reduce(function (total, review) {
       return total + Number(review.rating);
@@ -370,7 +388,7 @@ function renderDestinationReviews(destinationId) {
     return;
   }
 
-  reviews.slice().reverse().forEach(function (review) {
+  reviews.forEach(function (review) {
     var card = document.createElement("article");
     card.className = "review-card";
 
@@ -401,7 +419,7 @@ function renderDestinationReviews(destinationId) {
   });
 }
 
-function submitDestinationReview(event) {
+async function submitDestinationReview(event) {
   event.preventDefault();
   var form = event.currentTarget;
   var status = document.getElementById("review-status");
@@ -423,64 +441,223 @@ function submitDestinationReview(event) {
     return;
   }
 
-  var reviewStore;
-  try {
-    reviewStore = readReviewStore();
-    var reviews = getDestinationReviews(reviewStore, destinationId);
-    reviews.push({
-      name: name,
-      rating: Number(selectedRating.value),
-      review: reviewText,
-      createdAt: new Date().toISOString()
-    });
-    reviewStore[destinationId] = reviews;
-    window.localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(reviewStore));
-  } catch (error) {
-    status.textContent = "Your review could not be saved. " + error.message;
+  if (!sharedDatabase) {
+    status.textContent = "Shared reviews are not connected. Configure Firebase before submitting.";
     status.className = "form-message review-error";
     status.style.display = "block";
-    console.error("Unable to save review:", error);
+    return;
+  }
+  var rating = Number(selectedRating.value);
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5 ||
+      name.length > 60 || reviewText.length > 1000) {
+    status.textContent = "Use a name up to 60 characters and a review up to 1,000 characters.";
+    status.className = "form-message review-error";
+    status.style.display = "block";
     return;
   }
 
-  status.textContent = "Thank you! Your review has been saved in this browser.";
-  status.className = "form-message review-success";
+  var submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  status.textContent = "Submitting your review...";
+  status.className = "form-message";
   status.style.display = "block";
-  form.reset();
-  renderDestinationReviews(destinationId);
-  status.textContent = "Thank you! Your review has been saved in this browser.";
-  status.className = "form-message review-success";
-  status.style.display = "block";
+  try {
+    await sharedDatabase.collection("reviews").add({
+      destinationId: destinationId,
+      name: name,
+      rating: rating,
+      review: reviewText,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    form.reset();
+    status.textContent = "Your review was saved and is visible to other visitors.";
+    status.className = "form-message review-success";
+    status.style.display = "block";
+  } catch (error) {
+    status.textContent = "Your review could not be saved. Check your Firestore rules and internet connection.";
+    status.className = "form-message review-error";
+    status.style.display = "block";
+    console.error("Unable to save shared review:", error);
+  } finally {
+    submitButton.disabled = false;
+  }
 }
 
 /* --- DYNAMIC COMMENTS / SUGGESTIONS FUNCTION --- */
-function addComment(event) {
+function setCommentStatus(message, isError) {
+  var status = document.getElementById("comment-status");
+  if (!status) {
+    return;
+  }
+  status.textContent = message;
+  status.className = isError ? "form-message review-error" : "form-message";
+  status.style.display = "block";
+}
+
+function renderSharedComments(snapshot) {
+  var commentList = document.getElementById("comment-list");
+  commentList.textContent = "";
+
+  if (snapshot.empty) {
+    var emptyMessage = document.createElement("p");
+    emptyMessage.className = "notes-empty";
+    emptyMessage.textContent = "No comments yet. Be the first to leave one!";
+    commentList.appendChild(emptyMessage);
+    return;
+  }
+
+  snapshot.forEach(function (documentSnapshot) {
+    var comment = documentSnapshot.data();
+    if (!comment || typeof comment.name !== "string" ||
+      typeof comment.message !== "string") {
+      throw new Error("A saved comment has invalid details.");
+    }
+
+    var card = document.createElement("article");
+    card.className = "submitted-note-card";
+
+    var heading = document.createElement("div");
+    heading.className = "submitted-note-heading";
+    var name = document.createElement("h3");
+    name.textContent = comment.name;
+    heading.appendChild(name);
+
+    var message = document.createElement("p");
+    message.textContent = comment.message;
+    card.appendChild(heading);
+    card.appendChild(message);
+
+    if (comment.createdAt && typeof comment.createdAt.toDate === "function") {
+      var date = document.createElement("time");
+      date.className = "submitted-note-date";
+      date.dateTime = comment.createdAt.toDate().toISOString();
+      date.textContent = comment.createdAt.toDate().toLocaleDateString();
+      card.appendChild(date);
+    }
+    commentList.appendChild(card);
+  });
+}
+
+function connectSharedComments() {
+  var form = document.getElementById("comment-form");
+  if (!form) {
+    return;
+  }
+
+  var submitButton = form.querySelector('button[type="submit"]');
+  if (!loadSharedFirebase()) {
+    setCommentStatus("Shared comments are not set up yet. Add your Firebase web app config to firebase-config.js.", true);
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
+    return;
+  }
+
+  try {
+    sharedCommentsCollection = sharedDatabase
+      .collection("comments")
+      .orderBy("createdAt", "desc")
+      .limit(50);
+    sharedCommentsCollection.onSnapshot(function (snapshot) {
+      try {
+        renderSharedComments(snapshot);
+        setCommentStatus("Comments are shared with everyone who visits this site.", false);
+      } catch (error) {
+        setCommentStatus("A saved comment could not be displayed. " + error.message, true);
+        console.error("Unable to display shared comments:", error);
+      }
+    }, function (error) {
+      setCommentStatus("Comments could not be loaded. Check your Firestore database and rules.", true);
+      console.error("Unable to load shared comments:", error);
+    });
+  } catch (error) {
+    setCommentStatus("Firebase could not be initialized. Check firebase-config.js.", true);
+    console.error("Unable to initialize Firebase comments:", error);
+  }
+}
+
+async function addComment(event) {
   event.preventDefault();
 
   var nameInput = document.getElementById("comment-name");
   var textInput = document.getElementById("comment-text");
-  var commentList = document.getElementById("comment-list");
+  var name = nameInput.value.trim();
+  var message = textInput.value.trim();
 
-  if (commentList.innerHTML.includes("No comments yet")) {
-    commentList.innerHTML = "";
+  if (!sharedCommentsCollection) {
+    setCommentStatus("Comments are not connected yet. Configure Firebase before submitting.", true);
+    return;
+  }
+  if (!name || name.length > 60 || !message || message.length > 1000) {
+    setCommentStatus("Enter a name (up to 60 characters) and a comment (up to 1,000 characters).", true);
+    return;
   }
 
-  var newBox = document.createElement("div");
-  newBox.style.background = "#fff8ec";
-  newBox.style.padding = "15px";
-  newBox.style.marginBottom = "10px";
-  newBox.style.borderLeft = "4px solid #f6a53a";
-  newBox.style.border = "1px solid #ead9c1";
+  var submitButton = event.currentTarget.querySelector('button[type="submit"]');
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+  setCommentStatus("Submitting your comment...", false);
 
-  newBox.innerHTML = `
-    <strong style="color: #173f57; font-size: 16px;">${nameInput.value}</strong>
-    <p style="margin: 5px 0 0; color: #526977; font-size: 14px;">${textInput.value}</p>
-  `;
+  try {
+    await firebase.firestore().collection("comments").add({
+      name: name,
+      message: message,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    event.currentTarget.reset();
+    setCommentStatus("Your comment was saved and is visible to other visitors.", false);
+  } catch (error) {
+    setCommentStatus("Your comment could not be saved. Check your Firestore rules and internet connection.", true);
+    console.error("Unable to save shared comment:", error);
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
+  }
+}
 
-  commentList.insertBefore(newBox, commentList.firstChild);
+function connectContactNotes() {
+  var form = document.getElementById("contact-form");
+  if (!form) {
+    return;
+  }
+  if (!loadSharedFirebase()) {
+    var status = document.getElementById("form-message");
+    status.textContent = "Shared notes are not set up yet. Add your Firebase web app config to firebase-config.js.";
+    status.className = "form-message review-error";
+    status.style.display = "block";
+    form.querySelector('button[type="submit"]').disabled = true;
+    document.getElementById("submitted-note-list").textContent =
+      "Shared notes are unavailable until Firebase is configured.";
+    return;
+  }
+  form.addEventListener("submit", submitContactNote);
+  var status = document.getElementById("form-message");
+  status.textContent = "Notes are shared with visitors on every device.";
+  status.className = "form-message review-success";
+  status.style.display = "block";
+  renderContactNotes();
+}
 
-  nameInput.value = "";
-  textInput.value = "";
+function connectDestinationReviews() {
+  var form = document.getElementById("destination-review-form");
+  if (!form) {
+    return;
+  }
+  var status = document.getElementById("review-status");
+  if (!loadSharedFirebase()) {
+    status.textContent = "Shared reviews are not set up yet. Add your Firebase web app config to firebase-config.js.";
+    status.className = "form-message review-error";
+    status.style.display = "block";
+    form.hidden = true;
+    return;
+  }
+  form.addEventListener("submit", submitDestinationReview);
+  status.textContent = "Loading shared reviews...";
+  status.className = "form-message";
+  status.style.display = "block";
+  renderDestinationReviews(new URLSearchParams(window.location.search).get("destination"));
 }
 
 /* --- FAQ ACCORDION FUNCTION --- */
@@ -594,16 +771,15 @@ function preparePage() {
 
   var reviewForm = document.getElementById("destination-review-form");
   if (reviewForm) {
-    reviewForm.addEventListener("submit", submitDestinationReview);
-    renderDestinationReviews(new URLSearchParams(window.location.search).get("destination"));
+    connectDestinationReviews();
   }
 
   var contactForm = document.getElementById("contact-form");
   if (contactForm) {
-    contactForm.addEventListener("submit", submitContactNote);
-    renderContactNotes();
+    connectContactNotes();
   }
 
+  connectSharedComments();
   applyRevealEffects();
 }
 

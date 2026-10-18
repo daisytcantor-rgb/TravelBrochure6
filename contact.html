@@ -31,16 +31,12 @@
         <div class="contact-form-heading">
           <span class="eyebrow">Your story belongs here</span>
           <h2>Send us a note</h2>
-          <p>We’d love to hear what you’ve discovered.</p>
+          <p>Your name, topic, and note will be visible to everyone who visits this site. Please do not include private information.</p>
         </div>
         <form id="contact-form">
           <div class="form-row">
             <label for="visitor-name">Your name</label>
             <input id="visitor-name" name="visitor-name" type="text" maxlength="80" autocomplete="name" placeholder="Type your name" required>
-          </div>
-          <div class="form-row">
-            <label for="visitor-email">Email address</label>
-            <input id="visitor-email" name="visitor-email" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com" required>
           </div>
           <div class="form-row">
             <label for="topic">What would you like to share?</label>
@@ -66,7 +62,7 @@
           <h2>Notes shared by visitors</h2>
           <p>New notes appear here after they’re submitted.</p>
         </div>
-        <p class="notes-storage-note">Notes are saved in this browser only and are not sent to an inbox or shared with other devices.</p>
+        <p class="notes-storage-note">Notes are shared with visitors on every device. They are not sent to an email inbox.</p>
         <div id="submitted-note-list" aria-live="polite"></div>
       </div>
     </section>
@@ -75,8 +71,8 @@
       <div class="two-column">
         <div class="column">
           <span class="eyebrow">For future editors</span>
-          <h2>This form is a practice interaction.</h2>
-          <p>This student project saves notes in the current browser so they appear below the form. To receive messages from visitors on other devices, connect the form to a real server or form service.</p>
+          <h2>Share a note with the community.</h2>
+          <p>Visitor notes are stored in the shared project database and appear below the form. Do not submit private information.</p>
         </div>
         <div class="column">
           <div class="note-card"><h3>Good things to include</h3><ul class="check-list"><li>The destination and province</li><li>One detail you personally noticed</li><li>A practical tip for another student</li><li>Photo credit if you are sharing an image</li></ul></div>
@@ -91,6 +87,9 @@
       <div class="footer-column"><h3>Visit a page</h3><a href="destinations.html">Travel Guides</a><a href="gallery.html">Image Gallery</a><a href="faq.html">Frequently Asked Questions</a></div>
       <div class="footer-column"><h3>Keep in touch</h3><p><a href="contact.html">Send our class a message</a></p><p>For school practice only</p></div>
    </div>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
