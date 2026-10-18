@@ -8,7 +8,7 @@
   <link rel="icon" href="favicon.svg">
 </head>
 <body>
-  <audio id="travel-music" loop preload="metadata">
+  <audio id="travel-music" autoplay muted loop preload="metadata">
     <source src="happy-ukulele.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
   </audio>
@@ -22,13 +22,8 @@
     <div class="music-visualizer" aria-hidden="true">
       <span></span><span></span><span></span><span></span><span></span>
     </div>
-    <button class="music-control" id="music-control" type="button" aria-label="Play happy instrumental background music" aria-pressed="false" title="Play happy instrumental background music">
-      <svg class="music-play-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 5v14l11-7z"></path>
-      </svg>
-      <svg class="music-pause-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 5h4v14H7zM15 5h4v14h-4z"></path>
-      </svg>
+    <button class="music-control" id="music-control" type="button" aria-label="Unmute background music" aria-pressed="false" title="Unmute music">
+      <span id="music-control-label">Unmute</span>
     </button>
   </div>
 
@@ -53,6 +48,7 @@
         <a href="gallery.html">Gallery</a>
         <a href="contact.html">Contact</a>
         <a href="faq.html">FAQ</a>
+        <a href="login.html">Login</a>
       </nav>
     </div>
   </header>
@@ -89,12 +85,21 @@
       </div>
     </section>
 
+    <section id="custom-destinations-section" class="section" hidden>
+      <div class="section-heading">
+        <span class="eyebrow">More places to explore</span>
+        <h2>New Destinations</h2>
+        <p>Places and local food added by the travelogue admin.</p>
+      </div>
+      <div id="custom-destinations" class="custom-destination-grid"></div>
+    </section>
+
     <!-- SUGGESTIONS & COMMENTS SECTION -->
     <section class="section section-tint">
       <div class="section-heading">
         <span class="eyebrow">Community</span>
         <h2>Suggestions & Comments Box</h2>
-        <p>Leave your feedback or suggestions below so everyone can see them!</p>
+        <p>Leave a comment or suggestion. Comments are saved in this browser for this school demo. You can delete your own comment from its card if you need to correct it.</p>
       </div>
 
       <div class="form-card">
@@ -109,7 +114,7 @@
           </div>
           <button class="button" type="submit">Submit Comment</button>
         </form>
-        <p id="comment-status" class="form-message" role="status" aria-live="polite">Connecting to shared comments...</p>
+        <p id="comment-status" class="form-message" role="status" aria-live="polite">Loading comments saved in this browser...</p>
       </div>
 
       <!-- Comments list container -->
@@ -131,6 +136,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Admin | PH Travelogue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-strip">PH Travelogue · School project demo</div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html"><span class="brand-copy"><span class="brand-name">PH TRAVELOGUE</span><span class="brand-tagline">demo dashboard</span></span></a>
+      <nav class="main-nav" aria-label="Dashboard navigation">
+        <a href="index.html">View website</a>
+        <button class="text-button" id="logout-button" type="button">Log out</button>
+      </nav>
+    </div>
+  </header>
+  <main id="admin-dashboard" hidden>
+    <section class="page-intro">
+      <span class="page-kicker">Admin demo</span>
+      <h1>Welcome, <span id="admin-username"></span></h1>
+      <p>Manage local destination text and moderate comments and feedback saved in this browser.</p>
+    </section>
+    <section class="section">
+      <p class="storage-note">Demo limitations: these edits, accounts, comments, and cached messages use localStorage and are visible only in this browser. Comments posted from other devices do not appear here.</p>
+      <section class="admin-panel">
+        <div class="section-heading">
+          <span class="eyebrow">Local content</span>
+          <h2>Edit destination details</h2>
+        </div>
+        <form id="destination-editor" class="destination-editor"></form>
+        <p id="destination-status" class="form-message" role="status" aria-live="polite"></p>
+      </section>
+      <section class="admin-panel">
+        <div class="section-heading">
+          <span class="eyebrow">Add to the travelogue</span>
+          <h2>Add a new destination</h2>
+          <p>Add a place and its food, with descriptions and photos for both.</p>
+        </div>
+        <form id="new-destination-form">
+          <div class="form-row">
+            <label for="new-destination-name">Destination name</label>
+            <input id="new-destination-name" maxlength="80" required>
+          </div>
+          <div class="form-row">
+            <label for="new-destination-location">Island / province / location</label>
+            <input id="new-destination-location" maxlength="100" required>
+          </div>
+          <div class="form-row">
+            <label for="new-destination-description">Place description</label>
+            <textarea id="new-destination-description" maxlength="500" required></textarea>
+          </div>
+          <div class="form-row">
+            <label for="new-destination-image">Place photo (JPG, PNG, or WebP; up to 400 KB)</label>
+            <input id="new-destination-image" type="file" accept="image/jpeg,image/png,image/webp" required>
+          </div>
+          <div class="form-row">
+            <label for="new-food-name">Local food name</label>
+            <input id="new-food-name" maxlength="80" required>
+          </div>
+          <div class="form-row">
+            <label for="new-food-description">Food description</label>
+            <textarea id="new-food-description" maxlength="500" required></textarea>
+          </div>
+          <div class="form-row">
+            <label for="new-food-image">Food photo (JPG, PNG, or WebP; up to 400 KB)</label>
+            <input id="new-food-image" type="file" accept="image/jpeg,image/png,image/webp" required>
+          </div>
+          <button class="button" type="submit">Add destination</button>
+        </form>
+        <p id="new-destination-status" class="form-message" role="status" aria-live="polite"></p>
+        <div id="custom-destination-list" aria-live="polite"></div>
+      </section>
+      <section class="admin-panel">
+        <div class="section-heading">
+          <span class="eyebrow">Comment moderation</span>
+          <h2>Review and delete comments</h2>
+          <p>Remove incorrect or inappropriate comments and visitor messages saved in this browser.</p>
+        </div>
+        <div id="admin-feedback" aria-live="polite"></div>
+        <p id="admin-feedback-status" class="form-message" role="status" aria-live="polite"></p>
+      </section>
+      <section class="admin-panel">
+        <div class="section-heading">
+          <span class="eyebrow">Visitor ratings</span>
+          <h2>Destination ratings and reviews</h2>
+        </div>
+        <div id="admin-ratings" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+  <script src="auth.js"></script>
+  <script src="script.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

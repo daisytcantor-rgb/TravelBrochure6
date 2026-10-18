@@ -23,15 +23,26 @@
     <section class="page-intro">
       <span class="page-kicker">Share with our travel journal</span>
       <h1>Have a place we should add?</h1>
-      <p>Send our student team a destination idea, a correction, or a favorite detail from your part of the Philippines.</p>
+      <p>Send our student team a destination idea, a recommendation, a correction, or a favorite detail from your part of the Philippines.</p>
     </section>
 
     <section class="section">
+      <div class="contact-details" aria-label="Contact details">
+        <div>
+          <span class="eyebrow">Email us</span>
+          <a href="mailto:travelbrochurewebsite@gmail.com">travelbrochurewebsite@gmail.com</a>
+        </div>
+        <div>
+          <span class="eyebrow">Our location</span>
+          <address>8167 Dr. A. Santos Ave., Barangay San Dionisio, Parañaque</address>
+        </div>
+      </div>
+
       <div class="contact-form-card">
         <div class="contact-form-heading">
           <span class="eyebrow">Your story belongs here</span>
-          <h2>Send us a note</h2>
-          <p>Your name, topic, and note will be visible to everyone who visits this site. Please do not include private information.</p>
+          <h2>Share an idea, recommendation, or photo</h2>
+          <p>Your name, topic, note, and any photo you attach will be visible to everyone who visits this site. Please do not include private information, and only share photos you have permission to use.</p>
         </div>
         <form id="contact-form">
           <div class="form-row">
@@ -42,6 +53,7 @@
             <label for="topic">What would you like to share?</label>
             <select id="topic" name="topic">
               <option value="destination">A destination idea</option>
+              <option value="recommendation">A recommendation or travel tip</option>
               <option value="photo">A photo suggestion</option>
               <option value="correction">A correction</option>
               <option value="school">A school project question</option>
@@ -49,7 +61,12 @@
           </div>
           <div class="form-row">
             <label for="visitor-message">Your message</label>
-            <textarea id="visitor-message" name="visitor-message" maxlength="1500" placeholder="Write a short note about your travel idea." required></textarea>
+            <textarea id="visitor-message" name="visitor-message" maxlength="1500" placeholder="Add any details or recommendations that could help other visitors." required></textarea>
+          </div>
+          <div class="form-row">
+            <label for="visitor-photo">Attach a photo (optional)</label>
+            <input id="visitor-photo" name="visitor-photo" type="file" accept="image/jpeg,image/png,image/webp">
+            <small class="form-help">JPG, PNG, or WebP, up to 400 KB. The photo will be shared publicly with your note.</small>
           </div>
           <div class="form-message" id="form-message" role="status"></div>
           <button class="button contact-submit" type="submit">Send the note <span aria-hidden="true">→</span></button>
@@ -60,9 +77,9 @@
         <div class="section-heading">
           <span class="eyebrow">Community notes</span>
           <h2>Notes shared by visitors</h2>
-          <p>New notes appear here after they’re submitted.</p>
+          <p>Recommendations, travel tips, and photos shared by visitors appear here.</p>
         </div>
-        <p class="notes-storage-note">Notes are shared with visitors on every device. They are not sent to an email inbox.</p>
+        <p class="notes-storage-note">Notes and optional photos are shared with visitors on every device. They are not sent to an email inbox.</p>
         <div id="submitted-note-list" aria-live="polite"></div>
       </div>
     </section>
@@ -72,10 +89,10 @@
         <div class="column">
           <span class="eyebrow">For future editors</span>
           <h2>Share a note with the community.</h2>
-          <p>Visitor notes are stored in the shared project database and appear below the form. Do not submit private information.</p>
+          <p>Visitor notes and optional photos are stored in the shared project database and appear below the form. Do not submit private information or images you do not have permission to share.</p>
         </div>
         <div class="column">
-          <div class="note-card"><h3>Good things to include</h3><ul class="check-list"><li>The destination and province</li><li>One detail you personally noticed</li><li>A practical tip for another student</li><li>Photo credit if you are sharing an image</li></ul></div>
+          <div class="note-card"><h3>Good things to include</h3><ul class="check-list"><li>The destination and province</li><li>One detail you personally noticed</li><li>A recommendation or practical tip</li><li>Photo credit in your message if you share an image</li></ul></div>
         </div>
       </div>
     </section>
@@ -85,8 +102,9 @@
     <div class="footer-columns">
       <div class="footer-column"><h3>Travel Brochure</h3><p>A cheerful, editable travelogue made by students who want to look closer at the Philippines.</p></div>
       <div class="footer-column"><h3>Visit a page</h3><a href="destinations.html">Travel Guides</a><a href="gallery.html">Image Gallery</a><a href="faq.html">Frequently Asked Questions</a></div>
-      <div class="footer-column"><h3>Keep in touch</h3><p><a href="contact.html">Send our class a message</a></p><p>For school practice only</p></div>
-   </div>
+      <div class="footer-column"><h3>Keep in touch</h3><p><a href="mailto:travelbrochurewebsite@gmail.com">travelbrochurewebsite@gmail.com</a></p><p>8167 Dr. A. Santos Ave., Barangay San Dionisio, Parañaque</p><p>For school practice only</p></div>
+    </div>
+  </footer>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
