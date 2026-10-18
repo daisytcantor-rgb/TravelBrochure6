@@ -1,6 +1,8 @@
 (function () {
   var SESSION_KEY = "phTravelogueSession";
+  var ADMIN_EMAIL = "daisytcantor@gmail.com";
   var auth = null;
+  var firebaseAdminUid = null;
   var readyResolve;
   var ready = new Promise(function (resolve) {
     readyResolve = resolve;
@@ -15,9 +17,20 @@
         firebase.initializeApp(window.FIREBASE_CONFIG);
       }
       auth = firebase.auth();
-      auth.onAuthStateChanged(function (user) {
-        var session = getSession(user);
-        readyResolve(session);
+      auth.onAuthStateChanged(async function (user) {
+        firebaseAdminUid = null;
+        if (user) {
+          try {
+            var tokenResult = await user.getIdTokenResult();
+            if (tokenResult.claims.admin === true ||
+                (user.email && user.email.toLowerCase() === ADMIN_EMAIL && user.emailVerified)) {
+              firebaseAdminUid = user.uid;
+            }
+          } catch (error) {
+            console.error("Unable to check administrator permissions:", error);
+          }
+        }
+        readyResolve(getSession(user));
       }, function (error) {
         console.error("Unable to check the signed-in account:", error);
         readyResolve(null);
@@ -213,7 +226,7 @@
         username: currentUser.displayName || currentUser.email,
         email: currentUser.email,
         uid: currentUser.uid,
-        role: "user",
+        role: currentUser.uid === firebaseAdminUid ? "admin" : "user",
         emailVerified: currentUser.emailVerified
       };
     }

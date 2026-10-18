@@ -1,5 +1,8 @@
 var sharedCommentsCollection = null;
 var sharedDatabase = null;
+var canModerateSharedComments = false;
+var latestSharedComments = [];
+var COMMENT_ADMIN_EMAIL = "daisytcantor@gmail.com";
 var DESTINATIONS = {
   banaue: { name: "Banaue Rice Terraces (Ifugao)", description: "Amazing mountain terraces carved by ancestors with great care.", food: "Tinawon Red Rice", baseRating: 5 },
   intramuros: { name: "Intramuros (Manila)", description: "The historic Walled City of Manila. Walk through cobblestone streets, ride a bamboo bike or kalesa, and visit Fort Santiago where Dr. Jose Rizal was imprisoned.", food: "Halo Halo", baseRating: 4.5 },
@@ -980,6 +983,27 @@ function renderSharedComments(comments) {
       date.textContent = new Date(comment.createdAt).toLocaleDateString();
       card.appendChild(date);
     }
+    if (canModerateSharedComments) {
+      var deleteButton = document.createElement("button");
+      deleteButton.className = "button button-secondary comment-delete";
+      deleteButton.type = "button";
+      deleteButton.textContent = "Delete comment";
+      deleteButton.addEventListener("click", async function () {
+        if (!window.confirm("Delete this inappropriate comment? This cannot be undone.")) {
+          return;
+        }
+        deleteButton.disabled = true;
+        try {
+          await sharedDatabase.collection("comments").doc(comment.id).delete();
+          setCommentStatus("The comment was deleted.", false);
+        } catch (error) {
+          setCommentStatus(firestoreErrorMessage("The comment could not be deleted.", error), true);
+          console.error("Unable to delete shared comment:", error);
+          deleteButton.disabled = false;
+        }
+      });
+      card.appendChild(deleteButton);
+    }
     commentList.appendChild(card);
   });
 }
@@ -998,6 +1022,19 @@ function connectSharedComments() {
   }
 
   setCommentStatus("Loading shared comments...", false);
+  firebase.auth().onAuthStateChanged(async function (user) {
+    canModerateSharedComments = false;
+    if (user) {
+      try {
+        var tokenResult = await user.getIdTokenResult();
+        canModerateSharedComments = tokenResult.claims.admin === true ||
+          (user.email && user.email.toLowerCase() === COMMENT_ADMIN_EMAIL && user.emailVerified);
+      } catch (error) {
+        console.error("Unable to check comment moderation permissions:", error);
+      }
+    }
+    renderSharedComments(latestSharedComments);
+  });
   sharedDatabase.collection("comments")
     .orderBy("createdAt", "desc")
     .limit(50)
@@ -1011,6 +1048,7 @@ function connectSharedComments() {
             throw new Error("A saved comment has invalid details.");
           }
           comments.push({
+            id: documentSnapshot.id,
             name: comment.name,
             message: comment.message,
             createdAt: comment.createdAt && typeof comment.createdAt.toDate === "function"
@@ -1018,6 +1056,7 @@ function connectSharedComments() {
               : ""
           });
         });
+        latestSharedComments = comments;
         renderSharedComments(comments);
         setCommentStatus("Comments are shared with visitors on every device.", false);
       } catch (error) {

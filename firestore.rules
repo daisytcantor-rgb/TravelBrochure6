@@ -13,7 +13,11 @@ service cloud.firestore {
         && request.resource.data.message.size() > 0
         && request.resource.data.message.size() <= 1000
         && request.resource.data.createdAt == request.time;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if request.auth != null
+        && (request.auth.token.get('admin', false) == true
+          || (request.auth.token.get('email', '') == 'daisytcantor@gmail.com'
+            && request.auth.token.get('email_verified', false) == true));
     }
 
     match /contactNotes/{noteId} {
@@ -34,7 +38,10 @@ service cloud.firestore {
             && request.resource.data.photo.size() <= 550000
             && request.resource.data.photo.matches('data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}')))
         && request.resource.data.createdAt == request.time;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if request.auth != null
+        && request.auth.token.get('email', '') == 'daisytcantor@gmail.com'
+        && request.auth.token.get('email_verified', false) == true;
     }
 
     match /reviews/{reviewId} {

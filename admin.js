@@ -467,6 +467,110 @@
     });
   }
 
+  function connectSharedCommentModeration() {
+    var adminEmail = "daisytcantor@gmail.com";
+    var target = document.getElementById("admin-shared-comments");
+    var status = document.getElementById("admin-shared-comments-status");
+    if (!window.firebase || !firebase.firestore || !firebase.auth) {
+      status.textContent = "Shared comments are unavailable because Firebase could not be initialized.";
+      status.className = "form-message review-error";
+      return;
+    }
+
+    var database = firebase.firestore();
+    var canDeleteComments = false;
+    var latestCommentsSnapshot = null;
+
+    function renderComments(snapshot) {
+      target.textContent = "";
+      latestCommentsSnapshot = snapshot;
+      if (snapshot.empty) {
+        target.appendChild(makeCard("No shared comments", "Visitor comments from the home page will appear here."));
+        return;
+      }
+      snapshot.forEach(function (documentSnapshot) {
+        var comment = documentSnapshot.data();
+        var card = makeCard((comment.name || "Visitor") + " · Suggestion / comment", comment.message || "");
+        if (comment.createdAt && typeof comment.createdAt.toDate === "function") {
+          var date = document.createElement("time");
+          date.textContent = comment.createdAt.toDate().toLocaleString();
+          card.appendChild(date);
+        }
+        if (canDeleteComments) {
+          var remove = document.createElement("button");
+          remove.className = "button button-secondary";
+          remove.type = "button";
+          remove.textContent = "Delete comment";
+          remove.addEventListener("click", async function () {
+            if (!window.confirm("Delete this inappropriate comment for all visitors? This cannot be undone.")) {
+              return;
+            }
+            remove.disabled = true;
+            try {
+              await database.collection("comments").doc(documentSnapshot.id).delete();
+              status.textContent = "The shared comment was deleted.";
+              status.className = "form-message review-success";
+            } catch (error) {
+              status.textContent = error.code === "permission-denied"
+                ? "Firebase denied deletion. Confirm this account has the admin custom claim and that the latest Firestore rules are published."
+                : "The comment could not be deleted. Check your internet connection and try again.";
+              status.className = "form-message review-error";
+              console.error("Unable to delete shared comment:", error);
+              remove.disabled = false;
+            }
+            status.style.display = "block";
+          });
+          card.appendChild(remove);
+        }
+        target.appendChild(card);
+      });
+    }
+
+    firebase.auth().onAuthStateChanged(async function (user) {
+      canDeleteComments = false;
+      if (user) {
+        try {
+          var tokenResult = await user.getIdTokenResult();
+          canDeleteComments = tokenResult.claims.admin === true ||
+            (user.email && user.email.toLowerCase() === adminEmail && user.emailVerified);
+        } catch (error) {
+          console.error("Unable to check shared comment moderation permissions:", error);
+        }
+      }
+      status.textContent = canDeleteComments
+        ? "You can delete shared comments."
+        : user
+          ? "This Firebase account is not the verified daisytcantor@gmail.com account. Sign in with that account and refresh this page."
+          : session.role === "admin"
+            ? "You are signed in with the demo admin login, not Firebase. The demo login cannot delete shared comments."
+            : "Sign in to Firebase with the verified daisytcantor@gmail.com account to delete shared comments.";
+      status.className = "form-message";
+      status.style.display = "block";
+      if (!canDeleteComments) {
+        var signInLink = document.createElement("a");
+        signInLink.href = "login.html";
+        signInLink.textContent = " Open Firebase sign-in";
+        status.appendChild(signInLink);
+      }
+      if (latestCommentsSnapshot) {
+        renderComments(latestCommentsSnapshot);
+      }
+    });
+
+    database.collection("comments")
+      .orderBy("createdAt", "desc")
+      .limit(100)
+      .onSnapshot(renderComments, function (error) {
+        target.textContent = "Shared comments could not be loaded. Check your internet connection and Firestore rules.";
+        status.textContent = error.code === "permission-denied"
+          ? "Firestore rules denied access to comments."
+          : "Unable to connect to Firestore.";
+        status.className = "form-message review-error";
+        status.style.display = "block";
+        console.error("Unable to load comments for moderation:", error);
+      });
+  }
+
   function renderRatings() {
     var target = document.getElementById("admin-ratings");
     var reviews = readStorage("phTravelogueReviews", []);
@@ -493,6 +597,7 @@
   renderDestinationEditor();
   renderFeedback();
   renderRatings();
+  connectSharedCommentModeration();
   window.addEventListener("storage", function (event) {
     if (event.key === "phTravelogueComments" || event.key === "phTravelogueContactNotes") {
       var target = document.getElementById("admin-feedback");

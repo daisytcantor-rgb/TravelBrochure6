@@ -21,10 +21,10 @@
     <section class="page-intro">
       <span class="page-kicker">Admin demo</span>
       <h1>Welcome, <span id="admin-username"></span></h1>
-      <p>Manage local destination text and moderate comments and feedback saved in this browser.</p>
+      <p>Manage destination content and moderate visitor comments.</p>
     </section>
     <section class="section">
-      <p class="storage-note">Demo limitations: these edits, accounts, comments, and cached messages use localStorage and are visible only in this browser. Comments posted from other devices do not appear here.</p>
+      <p class="storage-note">Destination edits and gallery additions are saved in this browser. Shared comments are visible here and on the home page. Deleting shared comments requires a Firebase administrator account.</p>
       <section class="admin-panel">
         <div class="section-heading">
           <span class="eyebrow">Local content</span>
@@ -99,8 +99,10 @@
         <div class="section-heading">
           <span class="eyebrow">Comment moderation</span>
           <h2>Review and delete comments</h2>
-          <p>Remove incorrect or inappropriate comments and visitor messages saved in this browser.</p>
+          <p>Remove inappropriate comments visible to all visitors. Sign in with the verified Firebase account daisytcantor@gmail.com; the demo admin login cannot delete shared comments.</p>
         </div>
+        <div id="admin-shared-comments" aria-live="polite"></div>
+        <p id="admin-shared-comments-status" class="form-message" role="status" aria-live="polite"></p>
         <div id="admin-feedback" aria-live="polite"></div>
         <p id="admin-feedback-status" class="form-message" role="status" aria-live="polite"></p>
       </section>
@@ -115,6 +117,7 @@
   </main>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="auth.js"></script>
   <script src="script.js"></script>
