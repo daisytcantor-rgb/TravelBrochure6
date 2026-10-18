@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Gallery | Travel Brochure</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg">
+</head>
+<body>
+  <div class="top-strip">A student-made travel journal from our island home</div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html"><span class="brand-mark-big"><img src="logo.png" alt="Travel Brochure logo"></span><span class="brand-copy"><span class="brand-name-big">TRAVEL BROCHURE</span><span class="brand-tagline">small trips, big stories</span></span></a>
+      <button class="menu-button" id="menu-button" type="button">Menu</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <a href="index.html">Home</a><a href="about.html">About Us</a><a href="destinations.html">Travel Guides</a><a href="gallery.html" class="active" aria-current="page">Gallery</a><a href="contact.html">Contact</a><a href="faq.html">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-intro">
+      <span class="page-kicker">Snapshots from the scrapbook</span>
+      <h1>Views that made us stop and look twice.</h1>
+      <p>Click a photo to see a small note. Replace these starter images with your own class photos when your story is ready.</p>
+    </section>
+
+    <section class="section">
+      <div class="gallery-message" id="gallery-message" role="status"></div>
+
+      <div class="album-layout">
+        <div class="album-group">
+          <h2 class="album-heading">LUZON</h2>
+          <div class="album-grid">
+            <article class="album-card">
+              <div class="album-photo-stack">
+                <img class="place-image" src="Manila.png" alt="Historic Intramuros in Manila">
+                <img class="food-image" src="halohalo.png" alt="Halo-halo from Manila">
+              </div>
+              <div class="album-content">
+                <span class="album-tag">LUZON</span>
+                <h3>Manila, Intramuros</h3>
+                <div class="food-name">Halo-halo</div>
+                <div class="album-details">
+                  <button class="album-toggle" type="button" aria-expanded="false">View description</button>
+                  <div class="album-details-content">
+                    <p>The historic Walled City of Manila, filled with cobblestone streets, heritage churches, and the story of Dr. Jose Rizal. It is the old soul of Manila.</p>
+                    <p><strong>Food:</strong> Halo-halo is the ultimate Filipino summer cooler, a colorful mix of shaved ice, beans, nata de coco, ube, leche flan, sago, and ice cream.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="album-card">
+              <div class="album-photo-stack">
+                <img class="place-image" src="Banaue.png" alt="Rice terraces in Banaue, Ifugao">
+                <img class="food-image" src="tinawon.png" alt="Tinawon red rice from Ifugao">
+              </div>
+              <div class="album-content">
+                <span class="album-tag">LUZON</span>
+                <h3>Banaue, Rice Terraces</h3>
+                <div class="food-name">Tinawon Red Rice</div>
+                <div class="album-details">
+                  <button class="album-toggle" type="button" aria-expanded="false">View description</button>
+                  <div class="album-details-content">
+                    <p>These ancient terraces are a UNESCO-listed wonder, shaped by generations of Ifugao farmers into giant green stairways that seem to reach the sky.</p>
+                    <p><strong>Food:</strong> Tinawon red rice is an heirloom grain with a nutty, earthy taste that feels deeply connected to the mountain soil of Banaue.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="album-group">
+          <h2 class="album-heading">VISAYAS</h2>
+          <div class="album-grid">
+            <article class="album-card">
+              <div class="album-photo-stack">
+                <img class="place-image" src="Boracay.png" alt="White sand beach in Boracay, Aklan">
+                <img class="food-image" src="choriburger.png">
+              </div>
+              <div class="album-content">
+                <span class="album-tag">VISAYAS</span>
+                <h3>Boracay, Aklan</h3>
+                <div class="food-name">Chori Burger</div>
+                <div class="album-details">
+                  <button class="album-toggle" type="button" aria-expanded="false">View description</button>
+                  <div class="album-details-content">
+                    <p>Home to powdery white sand, crystal-clear waters, and unforgettable sunsets, Boracay is a beach destination known for energy, color, and island fun.</p>
+                    <p><strong>Food:</strong> Chori burger is a Boracay street-food favorite made with smoky native longganisa in a toasted bun, paired with spicy vinegar and atchara.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="album-card">
+              <div class="album-photo-stack">
+                <img class="place-image" src="Bohol.png" alt="Chocolate Hills in Bohol">
+                <img class="food-image" src="peanutkisses.png" alt="Peanut Kisses from Bohol">
+              </div>
+              <div class="album-content">
+                <span class="album-tag">VISAYAS</span>
+                <h3>Bohol</h3>
+                <div class="food-name">Peanut Kisses</div>
+                <div class="album-details">
+                  <button class="album-toggle" type="button" aria-expanded="false">View description</button>
+                  <div class="album-details-content">
+                    <p>Bohol offers the famous Chocolate Hills, the tiny tarsier, and relaxing river cruises, making it a place where nature and local charm blend beautifully.</p>
+                    <p><strong>Food:</strong> Peanut kisses are Bohol’s beloved pasalubong, a small meringue cookie with roasted peanuts, crunchy outside and sweetly nutty inside.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="album-group">
+          <h2 class="album-heading">MINDANAO</h2>
+          <div class="album-grid">
+            <article class="album-card">
+              <div class="album-photo-stack">
+                <img class="place-image" src="Siargao.png" alt="Island view in Siargao">
+                <img class="food-image" src="kinilaw.png" alt="Fresh kinilaw seafood dish from Siargao">
+              </div>
+              <div class="album-content">
+                <span class="album-tag">MINDANAO</span>
+                <h3>Siargao</h3>
+                <div class="food-name">Kinilaw</div>
+                <div class="album-details">
+                  <button class="album-toggle" type="button" aria-expanded="false">View description</button>
+                  <div class="album-details-content">
+                    <p>Siargao is the surfing capital of the Philippines, with coconut-lined roads, laid-back island culture, and breathtaking spots like Sugba Lagoon.</p>
+                    <p><strong>Food:</strong> Kinilaw is a fresh seafood dish cured in coconut vinegar, calamansi, ginger, onion, and siling labuyo, bringing out a bright sour-and-spicy flavor.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="album-card">
+              <div class="album-photo-stack">
+                <img class="place-image" src="Davao.png" alt="Coastal view near Davao and Samal Island">
+                <img class="food-image" src="durian.png" alt="Durian from Davao">
+              </div>
+              <div class="album-content">
+                <span class="album-tag">MINDANAO</span>
+                <h3>Davao City / Samal</h3>
+                <div class="food-name">Durian</div>
+                <div class="album-details">
+                  <button class="album-toggle" type="button" aria-expanded="false">View description</button>
+                  <div class="album-details-content">
+                    <p>Set against the backdrop of Mt. Apo and Samal’s white-sand beaches, this region is rich in natural beauty, adventure, and the culture of Mindanao.</p>
+                    <p><strong>Food:</strong> Durian is the king of fruits, celebrated for its strong aroma and creamy, custard-like flesh that is both bold and unforgettable.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-columns">
+      <div class="footer-column"><h3>Travel Brochure</h3><p>A cheerful, editable travelogue made by students who want to look closer at the Philippines.</p></div>
+      <div class="footer-column"><h3>Visit a page</h3><a href="destinations.html">Travel Guides</a><a href="gallery.html">Image Gallery</a><a href="faq.html">Frequently Asked Questions</a></div>
+      <div class="footer-column"><h3>Keep in touch</h3><p><a href="contact.html">Send our class a message</a></p><p>For school practice only</p></div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Brochure | A Philippines Travelogue</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg">
+</head>
+<body>
+  <audio id="travel-music" loop preload="metadata">
+    <source src="happy-ukulele.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  <div class="music-player" data-playing="false">
+    <div class="music-player-copy">
+      <span class="music-player-kicker">Happy travel soundtrack</span>
+      <strong>Happy Ukulele</strong>
+      <span class="music-player-status" id="music-player-status" aria-live="polite">Ready when you are</span>
+      <span class="music-player-credit">Happy Ukulele by Jason Shaw · <a href="https://audionautix.com/" target="_blank" rel="noopener noreferrer">music by audionautix.com</a> · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC BY 3.0</a></span>
+    </div>
+    <div class="music-visualizer" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button class="music-control" id="music-control" type="button" aria-label="Play happy instrumental background music" aria-pressed="false" title="Play happy instrumental background music">
+      <svg class="music-play-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
+      <svg class="music-pause-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 5h4v14H7zM15 5h4v14h-4z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="top-strip">A student-made travel journal from our island home</div>
+  
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark-big">
+          <img src="logo.png" alt="Travel Brochure logo">
+        </span>
+        <span class="brand-copy">
+          <span class="brand-name-big">TRAVEL BROCHURE</span>
+          <span class="brand-tagline">small trips, big stories</span>
+        </span>
+      </a>
+      <button class="menu-button" id="menu-button" type="button">Menu</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <a href="index.html" class="active">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="destinations.html">Travel Guides</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+        <a href="faq.html">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <img class="hero-image" src="https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1600&q=80" alt="Philippines tropical island">
+      <div class="hero-content">
+        <span class="hero-label">Our class field Travelouge</span>
+        <h1 class="huge-title">Welcome to our travel brochure!</h1>
+        <h2>Every island has a story worth writing down.</h2>
+        <p>Join our beginner travel journal as we collect views, food, history, and little surprises.</p>
+        <a class="button" href="destinations.html">Explore the guides</a>
+      </div>
+    </section>
+
+    <!-- REGION BUTTONS (Luzon, Visayas, Mindanao) -->
+    <section class="section">
+      <div class="section-heading">
+        <span class="eyebrow">Choose an Island</span>
+        <h2>Select a Region</h2>
+        <p>Click the buttons below to see destinations, local foods, videos, and ratings.</p>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 30px;">
+        <button class="button" onclick="showRegion('luzon')">Luzon</button>
+        <button class="button" onclick="showRegion('visayas')">Visayas</button>
+        <button class="button" onclick="showRegion('mindanao')">Mindanao</button>
+      </div>
+
+      <!-- REGION DISPLAY CONTAINER -->
+      <div id="region-display">
+        <p style="text-align: center; color: #526977; font-size: 18px;">Please select a region above to show the destinations.</p>
+      </div>
+    </section>
+
+    <!-- SUGGESTIONS & COMMENTS SECTION -->
+    <section class="section section-tint">
+      <div class="section-heading">
+        <span class="eyebrow">Community</span>
+        <h2>Suggestions & Comments Box</h2>
+        <p>Leave your feedback or suggestions below so everyone can see them!</p>
+      </div>
+
+      <div class="form-card">
+        <form id="comment-form" onsubmit="addComment(event)">
+          <div class="form-row">
+            <label for="comment-name">Your Name:</label>
+            <input type="text" id="comment-name" placeholder="Type your name here" required>
+          </div>
+          <div class="form-row">
+            <label for="comment-text">Suggestion or Comment:</label>
+            <textarea id="comment-text" placeholder="Write your suggestion here..." required></textarea>
+          </div>
+          <button class="button" type="submit">Submit Comment</button>
+        </form>
+      </div>
+
+      <!-- Comments list container -->
+      <div style="max-width: 730px; margin: 30px auto;" id="comments-container">
+        <h3 style="color: #173f57;">Visitor Suggestions:</h3>
+        <div id="comment-list">
+          <p style="color: #526977; font-style: italic;">No comments yet. Be the first to leave one!</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+   <footer class="site-footer">
+    <div class="footer-columns">
+      <div class="footer-column"><h3>Travel Brochure</h3><p>A cheerful, editable travelogue made by students who want to look closer at the Philippines.</p></div>
+      <div class="footer-column"><h3>Visit a page</h3><a href="destinations.html">Travel Guides</a><a href="gallery.html">Image Gallery</a><a href="faq.html">Frequently Asked Questions</a></div>
+      <div class="footer-column"><h3>Keep in touch</h3><p><a href="contact.html">Send our class a message</a></p><p>For school practice only</p></div>
+    </div>
+  </footer>
+ 
+  <script src="script.js"></script>
+</body>
+</html>

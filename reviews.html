@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destination Reviews | Travel Brochure</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg">
+</head>
+<body>
+  <div class="top-strip">A student-made travel journal from our island home</div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark-big"><img src="logo.png" alt="Travel Brochure logo"></span>
+        <span class="brand-copy"><span class="brand-name-big">TRAVEL BROCHURE</span><span class="brand-tagline">small trips, big stories</span></span>
+      </a>
+      <button class="menu-button" id="menu-button" type="button">Menu</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="destinations.html" class="active" aria-current="page">Travel Guides</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+        <a href="faq.html">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-intro">
+      <span class="page-kicker">Visitor reviews</span>
+      <h1 class="huge-title" id="review-destination-title">Destination reviews</h1>
+      <p id="review-rating-summary">Read what visitors think, then share your own experience.</p>
+    </section>
+
+    <section class="section">
+      <div class="review-layout">
+        <div>
+          <div class="section-heading">
+            <span class="eyebrow">Community voices</span>
+            <h2>Reviews</h2>
+          </div>
+          <div id="destination-review-list" aria-live="polite"></div>
+        </div>
+
+        <div>
+          <div class="section-heading">
+            <span class="eyebrow">Add your voice</span>
+            <h2>Leave a review</h2>
+          </div>
+          <div id="review-status" class="form-message" role="status" aria-live="polite"></div>
+          <div class="form-card">
+            <form id="destination-review-form">
+              <div class="form-row">
+                <label for="reviewer-name">Your Name</label>
+                <input type="text" id="reviewer-name" maxlength="60" autocomplete="name" required>
+              </div>
+              <fieldset class="form-row rating-fieldset">
+                <legend>Your Rating</legend>
+                <div class="star-rating">
+                  <input type="radio" id="rating-5" name="rating" value="5">
+                  <label for="rating-5" aria-label="5 stars">★</label>
+                  <input type="radio" id="rating-4" name="rating" value="4">
+                  <label for="rating-4" aria-label="4 stars">★</label>
+                  <input type="radio" id="rating-3" name="rating" value="3">
+                  <label for="rating-3" aria-label="3 stars">★</label>
+                  <input type="radio" id="rating-2" name="rating" value="2">
+                  <label for="rating-2" aria-label="2 stars">★</label>
+                  <input type="radio" id="rating-1" name="rating" value="1" required>
+                  <label for="rating-1" aria-label="1 star">★</label>
+                </div>
+              </fieldset>
+              <div class="form-row">
+                <label for="review-text">Your Review</label>
+                <textarea id="review-text" maxlength="1000" placeholder="What did you enjoy or want others to know?" required></textarea>
+              </div>
+              <button class="button" type="submit">Submit Review</button>
+            </form>
+          </div>
+          <p class="storage-note">Reviews are saved only in this browser and are not shared with other devices.</p>
+          <a class="text-link back-to-home" href="index.html">← Back to destinations</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+   <footer class="site-footer">
+    <div class="footer-columns">
+      <div class="footer-column"><h3>Travel Brochure</h3><bp>A cheerful, editable travelogue made by students who want to look closer at the Philippines.</p></div>
+      <div class="footer-column"><h3>Visit a page</h3><a href="destinations.html">Travel Guides</a><a href="gallery.html">Image Gallery</a><a href="faq.html">Frequently Asked Questions</a></div>
+      <div class="footer-column"><h3>Keep in touch</h3><p><a href="contact.html">Send our class a message</a></p><p>For school practice only</p></div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

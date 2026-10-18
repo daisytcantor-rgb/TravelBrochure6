@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact | Travel Brochure</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg">
+</head>
+<body>
+  <div class="top-strip">A student-made travel journal from our island home</div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html"><span class="brand-mark-big"><img src="logo.png" alt="Travel Brochure logo"></span><span class="brand-copy"><span class="brand-name-big">TRAVEL BROCHURE</span><span class="brand-tagline">small trips, big stories</span></span></a>
+      <button class="menu-button" id="menu-button" type="button">Menu</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <a href="index.html">Home</a><a href="about.html">About Us</a><a href="destinations.html">Travel Guides</a><a href="gallery.html">Gallery</a><a href="contact.html" class="active" aria-current="page">Contact</a><a href="faq.html">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-intro">
+      <span class="page-kicker">Share with our travel journal</span>
+      <h1>Have a place we should add?</h1>
+      <p>Send our student team a destination idea, a correction, or a favorite detail from your part of the Philippines.</p>
+    </section>
+
+    <section class="section">
+      <div class="contact-form-card">
+        <div class="contact-form-heading">
+          <span class="eyebrow">Your story belongs here</span>
+          <h2>Send us a note</h2>
+          <p>We’d love to hear what you’ve discovered.</p>
+        </div>
+        <form id="contact-form">
+          <div class="form-row">
+            <label for="visitor-name">Your name</label>
+            <input id="visitor-name" name="visitor-name" type="text" maxlength="80" autocomplete="name" placeholder="Type your name" required>
+          </div>
+          <div class="form-row">
+            <label for="visitor-email">Email address</label>
+            <input id="visitor-email" name="visitor-email" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com" required>
+          </div>
+          <div class="form-row">
+            <label for="topic">What would you like to share?</label>
+            <select id="topic" name="topic">
+              <option value="destination">A destination idea</option>
+              <option value="photo">A photo suggestion</option>
+              <option value="correction">A correction</option>
+              <option value="school">A school project question</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="visitor-message">Your message</label>
+            <textarea id="visitor-message" name="visitor-message" maxlength="1500" placeholder="Write a short note about your travel idea." required></textarea>
+          </div>
+          <div class="form-message" id="form-message" role="status"></div>
+          <button class="button contact-submit" type="submit">Send the note <span aria-hidden="true">→</span></button>
+        </form>
+      </div>
+
+      <div class="submitted-notes">
+        <div class="section-heading">
+          <span class="eyebrow">Community notes</span>
+          <h2>Notes shared by visitors</h2>
+          <p>New notes appear here after they’re submitted.</p>
+        </div>
+        <p class="notes-storage-note">Notes are saved in this browser only and are not sent to an inbox or shared with other devices.</p>
+        <div id="submitted-note-list" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section section-tint">
+      <div class="two-column">
+        <div class="column">
+          <span class="eyebrow">For future editors</span>
+          <h2>This form is a practice interaction.</h2>
+          <p>This student project saves notes in the current browser so they appear below the form. To receive messages from visitors on other devices, connect the form to a real server or form service.</p>
+        </div>
+        <div class="column">
+          <div class="note-card"><h3>Good things to include</h3><ul class="check-list"><li>The destination and province</li><li>One detail you personally noticed</li><li>A practical tip for another student</li><li>Photo credit if you are sharing an image</li></ul></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-columns">
+      <div class="footer-column"><h3>Travel Brochure</h3><p>A cheerful, editable travelogue made by students who want to look closer at the Philippines.</p></div>
+      <div class="footer-column"><h3>Visit a page</h3><a href="destinations.html">Travel Guides</a><a href="gallery.html">Image Gallery</a><a href="faq.html">Frequently Asked Questions</a></div>
+      <div class="footer-column"><h3>Keep in touch</h3><p><a href="contact.html">Send our class a message</a></p><p>For school practice only</p></div>
+   </div>
+  <script src="script.js"></script>
+</body>
+</html>
