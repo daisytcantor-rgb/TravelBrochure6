@@ -401,7 +401,9 @@ a:hover {
 .hero p {
   max-width: 540px;
   margin: 0 0 27px;
+  color: #fff8ec;
   font-size: 18px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .75);
 }
 
 .button {
@@ -1898,6 +1900,7 @@ li,
 @media (max-width: 760px) {
   .header-inner {
     gap: 0 12px;
+    flex-wrap: wrap;
   }
 
   .site-header {
