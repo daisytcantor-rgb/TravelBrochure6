@@ -73,6 +73,13 @@
         <p>Click the buttons below to see destinations, local foods, videos, and ratings.</p>
       </div>
 
+      <div class="destination-search">
+        <label for="home-destination-search">Search destinations</label>
+        <input id="home-destination-search" type="search" placeholder="Try Boracay, Banaue, beaches, or local food" autocomplete="off">
+        <p class="search-status" id="home-search-status" role="status" aria-live="polite">Search destinations, places, and local foods from across the Philippines.</p>
+      </div>
+      <div id="home-search-results" class="home-search-results" aria-live="polite"></div>
+
       <div style="text-align: center; margin-bottom: 30px;">
         <button class="button" onclick="showRegion('luzon')">Luzon</button>
         <button class="button" onclick="showRegion('visayas')">Visayas</button>
@@ -134,6 +141,7 @@
   </footer>
  
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="auth.js"></script>

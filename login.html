@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | PH Travelogue</title>
+  <title>Sign in | PH Travelogue</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="top-strip">PH Travelogue · School project demo</div>
+  <div class="top-strip">PH Travelogue · Sign in or create an account</div>
   <main>
     <section class="page-intro">
       <span class="page-kicker">Welcome to our travelogue</span>
-      <h1>Log in or create a demo account</h1>
-      <p>Accounts are saved only in this browser using localStorage. Do not use a real password.</p>
+      <h1>Sign in to continue</h1>
+      <p>Use your email and password, or continue with your Google account.</p>
     </section>
     <section class="section">
       <div class="login-grid">
@@ -20,36 +20,56 @@
           <h2>Log in</h2>
           <form id="login-form">
             <div class="form-row">
-              <label for="login-username">Username</label>
-              <input id="login-username" name="username" autocomplete="username" required>
+              <label for="login-email">Email address</label>
+              <input id="login-email" name="email" type="email" autocomplete="email" placeholder="you@gmail.com" required>
             </div>
             <div class="form-row">
               <label for="login-password">Password</label>
               <input id="login-password" name="password" type="password" autocomplete="current-password" required>
             </div>
             <button class="button" type="submit">Log in</button>
+            <button class="text-button" id="reset-password-button" type="button">Forgot your password?</button>
           </form>
+          <button class="button button-secondary google-sign-in" id="google-sign-in-button" type="button">Continue with Google</button>
         </div>
         <div class="form-card">
-          <h2>Create a regular account</h2>
+          <h2>Create an account</h2>
           <form id="register-form">
             <div class="form-row">
-              <label for="register-username">Username</label>
-              <input id="register-username" name="username" minlength="3" maxlength="24" autocomplete="username" required>
+              <label for="register-email">Gmail or email address</label>
+              <input id="register-email" name="email" type="email" autocomplete="email" placeholder="you@gmail.com" required>
             </div>
             <div class="form-row">
-              <label for="register-password">Password</label>
-              <input id="register-password" name="password" type="password" minlength="4" maxlength="60" autocomplete="new-password" required>
+              <label for="register-password">Create a password</label>
+              <input id="register-password" name="password" type="password" minlength="6" maxlength="128" autocomplete="new-password" required>
             </div>
             <button class="button" type="submit">Create account</button>
           </form>
-          <p>Regular accounts are stored on this device only.</p>
+          <p>After creating your account, you’ll be signed in and taken to the website.</p>
         </div>
       </div>
       <p id="auth-status" class="form-message" role="status" aria-live="polite"></p>
-      <p class="storage-note">This is a school demonstration, not real security. Passwords are stored in plain text in this browser.</p>
+      <details class="demo-admin-login">
+        <summary>Administrator demo sign-in</summary>
+        <p>This is a local school-project demo account, not a Google account or secure production administrator login.</p>
+        <form id="demo-admin-form">
+          <div class="form-row">
+            <label for="admin-username-input">Demo username</label>
+            <input id="admin-username-input" autocomplete="username" required>
+          </div>
+          <div class="form-row">
+            <label for="admin-password-input">Demo password</label>
+            <input id="admin-password-input" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="button button-secondary" type="submit">Open demo admin</button>
+        </form>
+      </details>
+      <p class="storage-note">Email sign-in, account creation, Google sign-in, and password reset use Firebase Authentication. Enable Email/Password and Google sign-in providers in the Firebase console, and authorize your website domain under Authentication settings.</p>
     </section>
   </main>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>

@@ -1,8 +1,9 @@
 (function () {
-  var session = window.TravelogueAuth.protectPage("admin");
-  if (!session) {
-    return;
-  }
+  window.TravelogueAuth.ready.then(function () {
+    var session = window.TravelogueAuth.protectPage("admin");
+    if (!session) {
+      return;
+    }
 
   var destinations = {
     banaue: { name: "Banaue Rice Terraces (Ifugao)", description: "Amazing mountain terraces carved by ancestors with great care.", food: "Tinawon Red Rice" },
@@ -14,6 +15,15 @@
   };
   var DESTINATIONS_KEY = "phTravelogueDestinations";
   var CUSTOM_DESTINATIONS_KEY = "phTravelogueCustomDestinations";
+  var GALLERY_PHOTOS_KEY = "phTravelogueGalleryPhotos";
+  var GALLERY_DESTINATIONS = {
+    intramuros: "Manila, Intramuros",
+    banaue: "Banaue, Rice Terraces",
+    boracay: "Boracay, Aklan",
+    bohol: "Bohol",
+    siargao: "Siargao",
+    samal: "Davao City / Samal"
+  };
   var DESTINATION_DEFAULTS = JSON.parse(JSON.stringify(destinations));
   var savedDestinations = readStorage(DESTINATIONS_KEY, {});
   Object.keys(destinations).forEach(function (id) {
@@ -26,6 +36,7 @@
   document.getElementById("admin-username").textContent = session.username;
   document.getElementById("logout-button").addEventListener("click", window.TravelogueAuth.logout);
   initializeCustomDestinations();
+  initializeGalleryPhotoManager();
 
   function readStorage(key, fallback) {
     var raw = localStorage.getItem(key);
@@ -60,14 +71,15 @@
     status.style.display = "block";
   }
 
-  function readImageFile(file, label) {
+  function readImageFile(file, label, maxSize) {
+    var sizeLimit = typeof maxSize === "number" ? maxSize : 400 * 1024;
     return new Promise(function (resolve, reject) {
       if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) {
         reject(new Error("Choose a JPG, PNG, or WebP image for the " + label + "."));
         return;
       }
-      if (file.size > 400 * 1024) {
-        reject(new Error("The " + label + " image must be 400 KB or smaller."));
+      if (file.size > sizeLimit) {
+        reject(new Error("The " + label + " image must be " + Math.floor(sizeLimit / 1024) + " KB or smaller."));
         return;
       }
       var reader = new FileReader();
@@ -83,6 +95,160 @@
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  function readGalleryPhotos() {
+    var photos = readStorage(GALLERY_PHOTOS_KEY, {});
+    return photos && typeof photos === "object" && !Array.isArray(photos) ? photos : {};
+  }
+
+  function setGalleryPhotoStatus(message, isError) {
+    var status = document.getElementById("gallery-photo-status");
+    status.textContent = message;
+    status.className = isError ? "form-message review-error" : "form-message review-success";
+    status.style.display = "block";
+  }
+
+  function renderAdminGalleryPhotos() {
+    var container = document.getElementById("admin-gallery-photos");
+    var photosByDestination = readGalleryPhotos();
+    container.textContent = "";
+
+    Object.keys(GALLERY_DESTINATIONS).forEach(function (destinationId) {
+      var photos = Array.isArray(photosByDestination[destinationId])
+        ? photosByDestination[destinationId].slice(0, 3)
+        : [];
+      var card = document.createElement("article");
+      card.className = "admin-gallery-photo-card";
+      var heading = document.createElement("h3");
+      heading.textContent = GALLERY_DESTINATIONS[destinationId] +
+        " · " + photos.length + "/3 extra photos";
+      card.appendChild(heading);
+
+      if (!photos.length) {
+        var emptyMessage = document.createElement("p");
+        emptyMessage.textContent = "No extra photos added yet.";
+        card.appendChild(emptyMessage);
+      } else {
+        var preview = document.createElement("div");
+        preview.className = "admin-gallery-photo-list";
+        photos.forEach(function (photo, index) {
+          if (!photo || typeof photo.data !== "string" ||
+              !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(photo.data) ||
+              photo.data.length > 140000) {
+            console.error("Skipping invalid saved gallery photo for " + destinationId + ".");
+            return;
+          }
+          var item = document.createElement("div");
+          item.className = "admin-gallery-photo-item";
+          var image = document.createElement("img");
+          image.src = photo.data;
+          image.alt = "Extra photo " + (index + 1) + " for " + GALLERY_DESTINATIONS[destinationId];
+          item.appendChild(image);
+          var remove = document.createElement("button");
+          remove.className = "button button-secondary";
+          remove.type = "button";
+          remove.textContent = "Remove photo";
+          remove.addEventListener("click", function () {
+            if (!window.confirm("Remove this extra photo from " + GALLERY_DESTINATIONS[destinationId] + "?")) {
+              return;
+            }
+            var updatedPhotos = readGalleryPhotos();
+            updatedPhotos[destinationId] = (Array.isArray(updatedPhotos[destinationId])
+              ? updatedPhotos[destinationId]
+              : []).filter(function (savedPhoto) {
+              return savedPhoto.id !== photo.id;
+            });
+            if (!updatedPhotos[destinationId].length) {
+              delete updatedPhotos[destinationId];
+            }
+            try {
+              localStorage.setItem(GALLERY_PHOTOS_KEY, JSON.stringify(updatedPhotos));
+              renderAdminGalleryPhotos();
+              setGalleryPhotoStatus("Extra photo removed from " + GALLERY_DESTINATIONS[destinationId] + ".", false);
+            } catch (error) {
+              setGalleryPhotoStatus("The photo could not be removed from browser storage.", true);
+              console.error("Unable to remove gallery photo:", error);
+            }
+          });
+          item.appendChild(remove);
+          preview.appendChild(item);
+        });
+        card.appendChild(preview);
+      }
+      container.appendChild(card);
+    });
+  }
+
+  function initializeGalleryPhotoManager() {
+    var form = document.getElementById("gallery-photo-form");
+    var destinationSelect = document.getElementById("gallery-photo-destination");
+    var fileInput = document.getElementById("gallery-photo-files");
+
+    Object.keys(GALLERY_DESTINATIONS).forEach(function (destinationId) {
+      var option = document.createElement("option");
+      option.value = destinationId;
+      option.textContent = GALLERY_DESTINATIONS[destinationId];
+      destinationSelect.appendChild(option);
+    });
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      var destinationId = destinationSelect.value;
+      var selectedFiles = Array.prototype.slice.call(fileInput.files || []);
+      var savedPhotos = readGalleryPhotos();
+      var currentPhotos = Array.isArray(savedPhotos[destinationId]) ? savedPhotos[destinationId] : [];
+      var submitButton = form.querySelector('button[type="submit"]');
+
+      if (!GALLERY_DESTINATIONS[destinationId]) {
+        setGalleryPhotoStatus("Select a valid gallery destination.", true);
+        return;
+      }
+      if (selectedFiles.length < 1 || selectedFiles.length > 3) {
+        setGalleryPhotoStatus("Choose between 1 and 3 photos to add.", true);
+        return;
+      }
+      if (currentPhotos.length + selectedFiles.length > 3) {
+        setGalleryPhotoStatus(
+          GALLERY_DESTINATIONS[destinationId] + " already has " + currentPhotos.length +
+          " extra photos. Remove a photo or choose " + (3 - currentPhotos.length) + " or fewer.",
+          true
+        );
+        return;
+      }
+
+      submitButton.disabled = true;
+      setGalleryPhotoStatus("Reading and saving extra gallery photos...", false);
+      try {
+        var newPhotos = await Promise.all(selectedFiles.map(function (file, index) {
+          return readImageFile(file, "extra photo " + (index + 1), 100 * 1024).then(function (data) {
+            return {
+              id: "gallery-photo-" + Date.now() + "-" + index + "-" + Math.random().toString(36).slice(2),
+              data: data
+            };
+          });
+        }));
+        savedPhotos[destinationId] = currentPhotos.concat(newPhotos);
+        localStorage.setItem(GALLERY_PHOTOS_KEY, JSON.stringify(savedPhotos));
+        form.reset();
+        renderAdminGalleryPhotos();
+        setGalleryPhotoStatus(
+          newPhotos.length + (newPhotos.length === 1 ? " extra photo added to " : " extra photos added to ") +
+          GALLERY_DESTINATIONS[destinationId] + ". Refresh the Gallery page in this browser to see them.",
+          false
+        );
+      } catch (error) {
+        setGalleryPhotoStatus(
+          error.message || "The photos could not be saved. Browser storage may be full.",
+          true
+        );
+        console.error("Unable to add gallery photos:", error);
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    renderAdminGalleryPhotos();
   }
 
   function renderCustomDestinations() {
@@ -333,5 +499,6 @@
       target.textContent = "";
       renderFeedback();
     }
+  });
   });
 })();

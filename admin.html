@@ -75,6 +75,28 @@
       </section>
       <section class="admin-panel">
         <div class="section-heading">
+          <span class="eyebrow">Gallery photos</span>
+          <h2>Add extra photos to a destination</h2>
+          <p>Choose 1–3 extra JPG, PNG, or WebP photos per destination. Each photo can be up to 100 KB.</p>
+        </div>
+        <p class="storage-note">Extra gallery photos are saved in this browser only. They will appear in this browser’s Gallery page.</p>
+        <form id="gallery-photo-form">
+          <div class="form-row">
+            <label for="gallery-photo-destination">Destination</label>
+            <select id="gallery-photo-destination" required></select>
+          </div>
+          <div class="form-row">
+            <label for="gallery-photo-files">Choose extra photos (1–3 at a time)</label>
+            <input id="gallery-photo-files" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+            <small class="form-help">You can add up to 3 extra photos in total for each destination.</small>
+          </div>
+          <button class="button" type="submit">Add photos to gallery</button>
+        </form>
+        <p id="gallery-photo-status" class="form-message" role="status" aria-live="polite"></p>
+        <div id="admin-gallery-photos" aria-live="polite"></div>
+      </section>
+      <section class="admin-panel">
+        <div class="section-heading">
           <span class="eyebrow">Comment moderation</span>
           <h2>Review and delete comments</h2>
           <p>Remove incorrect or inappropriate comments and visitor messages saved in this browser.</p>
@@ -91,6 +113,9 @@
       </section>
     </section>
   </main>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="auth.js"></script>
   <script src="script.js"></script>
   <script src="admin.js"></script>

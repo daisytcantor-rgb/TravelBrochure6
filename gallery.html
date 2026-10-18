@@ -27,17 +27,23 @@
     </section>
 
     <section class="section">
+      <div class="destination-search">
+        <label for="gallery-search">Search the gallery</label>
+        <input id="gallery-search" type="search" placeholder="Search destinations, regions, or local food" autocomplete="off">
+        <p class="search-status" id="gallery-search-status" role="status" aria-live="polite">All gallery collections are shown.</p>
+      </div>
       <div class="gallery-message" id="gallery-message" role="status"></div>
 
       <div class="album-layout">
         <div class="album-group">
           <h2 class="album-heading">LUZON</h2>
           <div class="album-grid">
-            <article class="album-card">
+            <article class="album-card" data-destination-id="intramuros">
               <div class="album-photo-stack">
                 <img class="place-image" src="Manila.png" alt="Historic Intramuros in Manila">
                 <img class="food-image" src="halohalo.png" alt="Halo-halo from Manila">
               </div>
+              <div class="album-extra-photos" aria-label="Additional Intramuros photos"></div>
               <div class="album-content">
                 <span class="album-tag">LUZON</span>
                 <h3>Manila, Intramuros</h3>
@@ -52,11 +58,12 @@
               </div>
             </article>
 
-            <article class="album-card">
+            <article class="album-card" data-destination-id="banaue">
               <div class="album-photo-stack">
                 <img class="place-image" src="Banaue.png" alt="Rice terraces in Banaue, Ifugao">
                 <img class="food-image" src="tinawon.png" alt="Tinawon red rice from Ifugao">
               </div>
+              <div class="album-extra-photos" aria-label="Additional Banaue photos"></div>
               <div class="album-content">
                 <span class="album-tag">LUZON</span>
                 <h3>Banaue, Rice Terraces</h3>
@@ -76,11 +83,12 @@
         <div class="album-group">
           <h2 class="album-heading">VISAYAS</h2>
           <div class="album-grid">
-            <article class="album-card">
+            <article class="album-card" data-destination-id="boracay">
               <div class="album-photo-stack">
                 <img class="place-image" src="Boracay.png" alt="White sand beach in Boracay, Aklan">
                 <img class="food-image" src="choriburger.png">
               </div>
+              <div class="album-extra-photos" aria-label="Additional Boracay photos"></div>
               <div class="album-content">
                 <span class="album-tag">VISAYAS</span>
                 <h3>Boracay, Aklan</h3>
@@ -95,11 +103,12 @@
               </div>
             </article>
 
-            <article class="album-card">
+            <article class="album-card" data-destination-id="bohol">
               <div class="album-photo-stack">
                 <img class="place-image" src="Bohol.png" alt="Chocolate Hills in Bohol">
                 <img class="food-image" src="peanutkisses.png" alt="Peanut Kisses from Bohol">
               </div>
+              <div class="album-extra-photos" aria-label="Additional Bohol photos"></div>
               <div class="album-content">
                 <span class="album-tag">VISAYAS</span>
                 <h3>Bohol</h3>
@@ -119,11 +128,12 @@
         <div class="album-group">
           <h2 class="album-heading">MINDANAO</h2>
           <div class="album-grid">
-            <article class="album-card">
+            <article class="album-card" data-destination-id="siargao">
               <div class="album-photo-stack">
                 <img class="place-image" src="Siargao.png" alt="Island view in Siargao">
                 <img class="food-image" src="kinilaw.png" alt="Fresh kinilaw seafood dish from Siargao">
               </div>
+              <div class="album-extra-photos" aria-label="Additional Siargao photos"></div>
               <div class="album-content">
                 <span class="album-tag">MINDANAO</span>
                 <h3>Siargao</h3>
@@ -138,11 +148,12 @@
               </div>
             </article>
 
-            <article class="album-card">
+            <article class="album-card" data-destination-id="samal">
               <div class="album-photo-stack">
                 <img class="place-image" src="Davao.png" alt="Coastal view near Davao and Samal Island">
                 <img class="food-image" src="durian.png" alt="Durian from Davao">
               </div>
+              <div class="album-extra-photos" aria-label="Additional Davao and Samal photos"></div>
               <div class="album-content">
                 <span class="album-tag">MINDANAO</span>
                 <h3>Davao City / Samal</h3>
@@ -170,6 +181,11 @@
     </div>
   </footer>
 
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

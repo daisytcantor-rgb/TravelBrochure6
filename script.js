@@ -8,6 +8,228 @@ var DESTINATIONS = {
   siargao: { name: "Siargao Island (Surigao del Norte)", description: "The Surfing Capital of the Philippines with stunning blue horizons.", food: "Kinilaw", baseRating: 5 },
   samal: { name: "Samal (Davao City)", description: "A volcanic island known for sweet lanzones fruits and springs.", food: "Durian", baseRating: 4.5 }
 };
+var HOME_DESTINATION_DETAILS = {
+  banaue: { region: "Luzon", image: "Banaue.png" },
+  intramuros: { region: "Luzon", image: "Manila.png" },
+  boracay: { region: "Visayas", image: "Boracay.png" },
+  bohol: { region: "Visayas", image: "Bohol.png" },
+  siargao: { region: "Mindanao", image: "Siargao.png" },
+  samal: { region: "Mindanao", image: "Davao.png" }
+};
+var GALLERY_PHOTOS_KEY = "phTravelogueGalleryPhotos";
+
+function renderGalleryExtraPhotos() {
+  var galleryCards = document.querySelectorAll(".album-card[data-destination-id]");
+  if (!galleryCards.length) {
+    return;
+  }
+  var extraPhotos = readTravelogueStorage(GALLERY_PHOTOS_KEY, {});
+  if (!extraPhotos || typeof extraPhotos !== "object" || Array.isArray(extraPhotos)) {
+    throw new Error("Saved gallery photos have an invalid format.");
+  }
+  galleryCards.forEach(function (card) {
+    var destinationId = card.getAttribute("data-destination-id");
+    var photoContainer = card.querySelector(".album-extra-photos");
+    var destinationPhotos = Array.isArray(extraPhotos[destinationId]) ? extraPhotos[destinationId] : [];
+    if (!photoContainer) {
+      return;
+    }
+    photoContainer.textContent = "";
+    var morePhotosButton = document.createElement("button");
+    morePhotosButton.className = "album-more-photos";
+    morePhotosButton.type = "button";
+    morePhotosButton.setAttribute("aria-expanded", "false");
+    morePhotosButton.textContent = destinationPhotos.length
+      ? "More photos (" + Math.min(destinationPhotos.length, 3) + ")"
+      : "No extra photos yet";
+    morePhotosButton.disabled = !destinationPhotos.length;
+    photoContainer.appendChild(morePhotosButton);
+
+    var extraPhotoGallery = document.createElement("div");
+    extraPhotoGallery.className = "album-extra-photo-gallery";
+    extraPhotoGallery.hidden = true;
+    destinationPhotos.slice(0, 3).forEach(function (photo, index) {
+      if (!photo || typeof photo.data !== "string" ||
+          !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(photo.data) ||
+          photo.data.length > 140000) {
+        console.error("Skipping an invalid extra gallery photo for " + destinationId + ".");
+        return;
+      }
+      var image = document.createElement("img");
+      image.src = photo.data;
+      image.alt = "Additional " + (index + 1) + " photo of " +
+        card.querySelector(".album-content h3").textContent;
+      image.loading = "lazy";
+      extraPhotoGallery.appendChild(image);
+    });
+    if (extraPhotoGallery.childElementCount) {
+      morePhotosButton.disabled = false;
+      morePhotosButton.textContent = "More photos (" + extraPhotoGallery.childElementCount + ")";
+      morePhotosButton.addEventListener("click", function () {
+        var isExpanded = morePhotosButton.getAttribute("aria-expanded") === "true";
+        morePhotosButton.setAttribute("aria-expanded", String(!isExpanded));
+        morePhotosButton.textContent = isExpanded
+          ? "More photos (" + extraPhotoGallery.childElementCount + ")"
+          : "Hide extra photos";
+        extraPhotoGallery.hidden = isExpanded;
+      });
+    }
+    photoContainer.appendChild(extraPhotoGallery);
+  });
+}
+
+function setupCardSearch(inputId, cardSelector, groupSelector, statusId) {
+  var input = document.getElementById(inputId);
+  var status = document.getElementById(statusId);
+  if (!input || !status || input.dataset.destinationSearchReady === "true") {
+    return;
+  }
+  input.dataset.destinationSearchReady = "true";
+  input.addEventListener("input", function () {
+    var query = input.value.trim().toLocaleLowerCase();
+    var cards = document.querySelectorAll(cardSelector);
+    var visibleCount = 0;
+    cards.forEach(function (card) {
+      var matches = !query || card.textContent.toLocaleLowerCase().indexOf(query) !== -1;
+      card.hidden = !matches;
+      if (matches) {
+        visibleCount += 1;
+      }
+    });
+    if (groupSelector) {
+      document.querySelectorAll(groupSelector).forEach(function (group) {
+        group.hidden = !group.querySelector(cardSelector + ":not([hidden])");
+      });
+    }
+    if (!query) {
+      status.textContent = "All " + cards.length + (cards.length === 1 ? " item is" : " items are") + " shown.";
+    } else if (visibleCount) {
+      status.textContent = visibleCount + (visibleCount === 1 ? " result" : " results") + " found for “" + input.value.trim() + "”.";
+    } else {
+      status.textContent = "No results found for “" + input.value.trim() + "”. Try another destination, region, or food.";
+    }
+  });
+}
+
+function renderHomeDestinationSearch(query) {
+  var results = document.getElementById("home-search-results");
+  var status = document.getElementById("home-search-status");
+  if (!results || !status) {
+    return;
+  }
+  results.textContent = "";
+  var normalizedQuery = query.trim().toLocaleLowerCase();
+  if (!normalizedQuery) {
+    status.textContent = "Search destinations, places, and local foods from across the Philippines.";
+    return;
+  }
+
+  var matchCount = 0;
+  Object.keys(DESTINATIONS).forEach(function (destinationId) {
+    var destination = DESTINATIONS[destinationId];
+    var details = HOME_DESTINATION_DETAILS[destinationId];
+    var searchableText = [
+      destinationText(destinationId, "name"),
+      destinationText(destinationId, "description"),
+      destinationText(destinationId, "food"),
+      details.region
+    ].join(" ").toLocaleLowerCase();
+    if (searchableText.indexOf(normalizedQuery) === -1) {
+      return;
+    }
+
+    var card = document.createElement("article");
+    card.className = "feature-card home-search-card";
+    var image = document.createElement("img");
+    image.src = details.image;
+    image.alt = destination.name;
+    card.appendChild(image);
+    var content = document.createElement("div");
+    content.className = "feature-card-content";
+    var region = document.createElement("span");
+    region.className = "tag";
+    region.textContent = details.region;
+    content.appendChild(region);
+    var heading = document.createElement("h3");
+    heading.textContent = destinationText(destinationId, "name");
+    content.appendChild(heading);
+    var description = document.createElement("p");
+    description.textContent = destinationText(destinationId, "description");
+    content.appendChild(description);
+    var food = document.createElement("p");
+    food.textContent = "Local food: " + destinationText(destinationId, "food");
+    content.appendChild(food);
+    var link = document.createElement("a");
+    link.className = "text-link";
+    link.href = "destinations.html";
+    link.textContent = "View travel guides";
+    content.appendChild(link);
+    card.appendChild(content);
+    results.appendChild(card);
+    matchCount += 1;
+  });
+
+  var customDestinations = readTravelogueStorage("phTravelogueCustomDestinations", []);
+  if (Array.isArray(customDestinations)) {
+    customDestinations.forEach(function (destination) {
+      if (!destination || typeof destination.name !== "string") {
+        return;
+      }
+      var searchableText = [
+        destination.name,
+        destination.location,
+        destination.description,
+        destination.foodName,
+        destination.foodDescription
+      ].join(" ").toLocaleLowerCase();
+      if (searchableText.indexOf(normalizedQuery) === -1) {
+        return;
+      }
+      var card = document.createElement("article");
+      card.className = "feature-card home-search-card";
+      if (typeof destination.placeImage === "string" &&
+          /^data:image\/(jpeg|png|webp);base64,/.test(destination.placeImage)) {
+        var image = document.createElement("img");
+        image.src = destination.placeImage;
+        image.alt = destination.name;
+        card.appendChild(image);
+      }
+      var content = document.createElement("div");
+      content.className = "feature-card-content";
+      var heading = document.createElement("h3");
+      heading.textContent = destination.name;
+      content.appendChild(heading);
+      var location = document.createElement("p");
+      location.textContent = destination.location || "";
+      content.appendChild(location);
+      var description = document.createElement("p");
+      description.textContent = destination.description || "";
+      content.appendChild(description);
+      var food = document.createElement("p");
+      food.textContent = "Local food: " + (destination.foodName || "Not listed");
+      content.appendChild(food);
+      card.appendChild(content);
+      results.appendChild(card);
+      matchCount += 1;
+    });
+  }
+
+  status.textContent = matchCount
+    ? matchCount + (matchCount === 1 ? " destination" : " destinations") + " found for “" + query.trim() + "”."
+    : "No destinations found for “" + query.trim() + "”. Try another place, region, or food.";
+}
+
+function initializeDestinationSearches() {
+  var homeSearch = document.getElementById("home-destination-search");
+  if (homeSearch && homeSearch.dataset.destinationSearchReady !== "true") {
+    homeSearch.dataset.destinationSearchReady = "true";
+    homeSearch.addEventListener("input", function () {
+      renderHomeDestinationSearch(homeSearch.value);
+    });
+  }
+  setupCardSearch("guide-search", ".destination-guides .guide-row", ".destination-guides .region-group", "guide-search-status");
+  setupCardSearch("gallery-search", ".album-card", ".album-group", "gallery-search-status");
+}
 
 function readTravelogueStorage(key, fallback) {
   var value = localStorage.getItem(key);
@@ -864,7 +1086,7 @@ function toggleFaq(question) {
 }
 
 function applyRevealEffects() {
-  var revealTargets = document.querySelectorAll(".page-intro h1, .section-heading, .feature-card, .guide-row, .team-card, .album-card, .review-card, .submitted-note-card, .about-group-photo");
+  var revealTargets = document.querySelectorAll(".page-intro h1, .section-heading, .feature-card, .guide-row, .team-card, .album-card, .review-card, .submitted-note-card, .about-group-photo, .admin-panel, .login-grid .form-card, .contact-details");
 
   if (!revealTargets.length || !window.IntersectionObserver) {
     revealTargets.forEach(function (element) {
@@ -1019,6 +1241,7 @@ function ensureGlobalTravelFeatures() {
 /* --- PAGE INITIALIZATION (Connects menu & FAQ buttons) --- */
 function preparePage() {
   ensureGlobalTravelFeatures();
+  initializeDestinationSearches();
   var menuButton = document.getElementById("menu-button");
   if (menuButton) {
     menuButton.onclick = showMobileMenu;
@@ -1101,7 +1324,9 @@ function preparePage() {
 
   connectSharedComments();
   renderCustomDestinations();
+  renderGalleryExtraPhotos();
   applyRevealEffects();
 }
 
+initializeDestinationSearches();
 window.onload = preparePage;
