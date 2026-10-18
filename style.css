@@ -1906,8 +1906,16 @@ a:hover {
 }
 
 .google-sign-in {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   margin: 16px 0 0;
+}
+
+.guest-link {
+  display: block;
+  width: fit-content;
+  margin: 28px auto 0;
 }
 
 .demo-admin-login {

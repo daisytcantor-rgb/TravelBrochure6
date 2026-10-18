@@ -253,6 +253,20 @@ function cacheTravelogueRecords(key, records) {
   }
 }
 
+function firestoreErrorMessage(action, error) {
+  var code = error && error.code;
+  if (code === "permission-denied") {
+    return action + " Firestore denied the request. Publish the rules in travel1/firestore.rules from Firebase Console, then try again.";
+  }
+  if (code === "unavailable" || code === "deadline-exceeded" ||
+      code === "network-request-failed") {
+    return action + " Firestore could not connect. Check your internet connection and try again.";
+  }
+  return action + (code
+    ? " Firestore returned " + code + ". Check the Firebase project and deployed Firestore rules."
+    : " Check your internet connection and deployed Firestore rules.");
+}
+
 function destinationText(destinationId, field) {
   var savedDestinations = readTravelogueStorage("phTravelogueDestinations", {});
   var saved = savedDestinations[destinationId];
@@ -415,9 +429,59 @@ function renderContactNotes() {
         console.error("Unable to display shared contact notes:", error);
       }
     }, function (error) {
-      noteList.textContent = "Shared notes could not be loaded. Check your Firestore database and rules.";
+      noteList.textContent = firestoreErrorMessage("Shared notes could not be loaded.", error);
       console.error("Unable to load shared contact notes:", error);
     });
+}
+
+function compressContactPhoto(file) {
+  return new Promise(function (resolve, reject) {
+    var image = new Image();
+    var objectUrl = URL.createObjectURL(file);
+    image.onload = function () {
+      try {
+        if (!image.naturalWidth || !image.naturalHeight) {
+          throw new Error("The selected file is not a readable image.");
+        }
+        var canvas = document.createElement("canvas");
+        var context = canvas.getContext("2d");
+        if (!context) {
+          throw new Error("This browser cannot prepare the selected photo.");
+        }
+
+        var scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+        var width = Math.max(1, Math.round(image.naturalWidth * scale));
+        var height = Math.max(1, Math.round(image.naturalHeight * scale));
+        var photoData = "";
+
+        for (var attempt = 0; attempt < 10; attempt += 1) {
+          canvas.width = width;
+          canvas.height = height;
+          context.fillStyle = "#fff";
+          context.fillRect(0, 0, width, height);
+          context.drawImage(image, 0, 0, width, height);
+          photoData = canvas.toDataURL("image/jpeg", Math.max(0.5, 0.85 - attempt * 0.07));
+          if (photoData.length <= 500000) {
+            URL.revokeObjectURL(objectUrl);
+            resolve(photoData);
+            return;
+          }
+
+          width = Math.max(1, Math.floor(width * 0.8));
+          height = Math.max(1, Math.floor(height * 0.8));
+        }
+        throw new Error("The photo could not be reduced enough to upload.");
+      } catch (error) {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      }
+    };
+    image.onerror = function () {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("The selected file is not a readable image."));
+    };
+    image.src = objectUrl;
+  });
 }
 
 async function submitContactNote(event) {
@@ -429,7 +493,6 @@ async function submitContactNote(event) {
   var message = document.getElementById("visitor-message").value.trim();
   var photoInput = document.getElementById("visitor-photo");
   var photoFile = photoInput.files && photoInput.files[0];
-  var allowedPhotoTypes = ["image/jpeg", "image/png", "image/webp"];
 
   if (!sharedDatabase) {
     status.textContent = "Shared notes are not connected. Configure Firebase before submitting.";
@@ -437,8 +500,8 @@ async function submitContactNote(event) {
     status.style.display = "block";
     return;
   }
-  if (photoFile && (allowedPhotoTypes.indexOf(photoFile.type) === -1 || photoFile.size > 400 * 1024)) {
-    status.textContent = "Choose a JPG, PNG, or WebP photo that is no larger than 400 KB.";
+  if (photoFile && photoFile.size > 10 * 1024 * 1024) {
+    status.textContent = "The selected photo is larger than 10 MB. Choose a smaller image.";
     status.className = "form-message review-error";
     status.style.display = "block";
     return;
@@ -459,25 +522,11 @@ async function submitContactNote(event) {
     var photoData = "";
     if (photoFile) {
       try {
-        photoData = await new Promise(function (resolve, reject) {
-          var reader = new FileReader();
-          reader.onload = function () {
-            if (typeof reader.result !== "string" ||
-                !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(reader.result)) {
-              reject(new Error("The selected photo could not be read as a supported image."));
-              return;
-            }
-            resolve(reader.result);
-          };
-          reader.onerror = function () {
-            reject(reader.error || new Error("The selected photo could not be read."));
-          };
-          reader.readAsDataURL(photoFile);
-        });
+        photoData = await compressContactPhoto(photoFile);
       } catch (error) {
-        status.textContent = "The selected photo could not be read. Choose another JPG, PNG, or WebP image.";
+        status.textContent = "This browser could not open that photo format. Try a photo format supported by your browser.";
         status.className = "form-message review-error";
-        console.error("Unable to read visitor photo:", error);
+        console.error("Unable to prepare visitor photo:", error);
         return;
       }
     }
@@ -495,7 +544,7 @@ async function submitContactNote(event) {
     status.textContent = "Your note was saved and is visible to other visitors.";
     status.className = "form-message review-success";
   } catch (error) {
-    status.textContent = "Your note could not be saved. Check your Firestore rules and internet connection.";
+    status.textContent = firestoreErrorMessage("Your note could not be saved.", error);
     status.className = "form-message review-error";
     console.error("Unable to save shared contact note:", error);
   } finally {
@@ -889,19 +938,6 @@ function setCommentStatus(message, isError) {
   status.style.display = "block";
 }
 
-function getCommentOwner() {
-  var session = window.TravelogueAuth ? window.TravelogueAuth.getSession() : null;
-  if (session && typeof session.username === "string") {
-    return "user:" + session.username.toLowerCase();
-  }
-  var owner = localStorage.getItem("phTravelogueVisitorId");
-  if (!owner) {
-    owner = "visitor:" + Date.now() + ":" + Math.random().toString(36).slice(2);
-    localStorage.setItem("phTravelogueVisitorId", owner);
-  }
-  return owner;
-}
-
 function renderSharedComments(comments) {
   var commentList = document.getElementById("comment-list");
   if (!commentList) {
@@ -944,31 +980,6 @@ function renderSharedComments(comments) {
       date.textContent = new Date(comment.createdAt).toLocaleDateString();
       card.appendChild(date);
     }
-    var session = window.TravelogueAuth ? window.TravelogueAuth.getSession() : null;
-    if (comment.owner === getCommentOwner() || (session && session.role === "admin")) {
-      var deleteButton = document.createElement("button");
-      deleteButton.className = "button button-secondary comment-delete";
-      deleteButton.type = "button";
-      var isOwnComment = comment.owner === getCommentOwner();
-      deleteButton.textContent = session && session.role === "admin" && !isOwnComment
-        ? "Delete comment"
-        : "Delete my comment";
-      deleteButton.addEventListener("click", function () {
-        if (!window.confirm("Delete this comment from this browser? This cannot be undone.")) {
-          return;
-        }
-        var commentsFromStorage = readTravelogueStorage("phTravelogueComments", []);
-        var remaining = commentsFromStorage.filter(function (savedComment) {
-          return savedComment.id !== comment.id;
-        });
-        cacheTravelogueRecords("phTravelogueComments", remaining);
-        renderSharedComments(remaining);
-        setCommentStatus(isOwnComment
-          ? "Your comment was deleted from this browser."
-          : "The comment was deleted from this browser by the administrator.", false);
-      });
-      card.appendChild(deleteButton);
-    }
     commentList.appendChild(card);
   });
 }
@@ -978,23 +989,47 @@ function connectSharedComments() {
   if (!form) {
     return;
   }
-  var comments = readTravelogueStorage("phTravelogueComments", []);
-  comments = comments.map(function (comment, index) {
-    if (!comment.id) {
-      comment.id = "legacy-comment-" + index + "-" + Date.now();
-    }
-    return comment;
-  });
-  cacheTravelogueRecords("phTravelogueComments", comments);
-  renderSharedComments(comments);
-  setCommentStatus("Comments are saved in this browser only.", false);
-  window.addEventListener("storage", function (event) {
-    if (event.key !== "phTravelogueComments") {
-      return;
-    }
-    var updatedComments = readTravelogueStorage("phTravelogueComments", []);
-    renderSharedComments(updatedComments);
-  });
+  form.addEventListener("submit", addComment);
+  if (!loadSharedFirebase()) {
+    setCommentStatus("Shared comments are unavailable. Check the Firebase setup in firebase-config.js.", true);
+    document.getElementById("comment-list").textContent =
+      "Comments cannot be loaded until Firebase is configured.";
+    return;
+  }
+
+  setCommentStatus("Loading shared comments...", false);
+  sharedDatabase.collection("comments")
+    .orderBy("createdAt", "desc")
+    .limit(50)
+    .onSnapshot(function (snapshot) {
+      try {
+        var comments = [];
+        snapshot.forEach(function (documentSnapshot) {
+          var comment = documentSnapshot.data();
+          if (!comment || typeof comment.name !== "string" ||
+              typeof comment.message !== "string") {
+            throw new Error("A saved comment has invalid details.");
+          }
+          comments.push({
+            name: comment.name,
+            message: comment.message,
+            createdAt: comment.createdAt && typeof comment.createdAt.toDate === "function"
+              ? comment.createdAt.toDate().toISOString()
+              : ""
+          });
+        });
+        renderSharedComments(comments);
+        setCommentStatus("Comments are shared with visitors on every device.", false);
+      } catch (error) {
+        setCommentStatus("A saved comment could not be displayed.", true);
+        console.error("Unable to display shared comments:", error);
+      }
+    }, function (error) {
+      setCommentStatus(firestoreErrorMessage("Shared comments could not be loaded.", error), true);
+      document.getElementById("comment-list").textContent =
+        "Comments are unavailable until the shared data can be read.";
+      console.error("Unable to load shared comments:", error);
+    });
 }
 
 async function addComment(event) {
@@ -1010,22 +1045,28 @@ async function addComment(event) {
     return;
   }
 
+  if (!sharedDatabase) {
+    setCommentStatus("Shared comments are not connected. Check the Firebase setup and try again.", true);
+    return;
+  }
+
+  var form = event.currentTarget;
+  var submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  setCommentStatus("Submitting your comment...", false);
   try {
-    var comments = readTravelogueStorage("phTravelogueComments", []);
-    comments.unshift({
-      id: "comment-" + Date.now() + "-" + Math.random().toString(36).slice(2),
+    await sharedDatabase.collection("comments").add({
       name: name,
       message: message,
-      owner: getCommentOwner(),
-      createdAt: new Date().toISOString()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    event.currentTarget.reset();
-    cacheTravelogueRecords("phTravelogueComments", comments);
-    renderSharedComments(comments);
-    setCommentStatus("Your comment was saved in this browser.", false);
+    form.reset();
+    setCommentStatus("Your comment was saved and is visible to other visitors.", false);
   } catch (error) {
-    setCommentStatus("Your comment could not be saved in this browser.", true);
-    console.error("Unable to save local comment:", error);
+    setCommentStatus(firestoreErrorMessage("Your comment could not be saved.", error), true);
+    console.error("Unable to save shared comment:", error);
+  } finally {
+    submitButton.disabled = false;
   }
 }
 

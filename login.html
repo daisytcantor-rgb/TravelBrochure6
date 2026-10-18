@@ -11,7 +11,7 @@
   <main>
     <section class="page-intro">
       <span class="page-kicker">Welcome to our travelogue</span>
-      <h1>Sign in to continue</h1>
+      <h1>Sign in or explore as a guest</h1>
       <p>Use your email and password, or continue with your Google account.</p>
     </section>
     <section class="section">
@@ -48,6 +48,7 @@
           <p>After creating your account, you’ll be signed in and taken to the website.</p>
         </div>
       </div>
+      <a class="button guest-link" href="index.html">Continue to the website as a guest</a>
       <p id="auth-status" class="form-message" role="status" aria-live="polite"></p>
       <details class="demo-admin-login">
         <summary>Administrator demo sign-in</summary>
@@ -64,7 +65,7 @@
           <button class="button button-secondary" type="submit">Open demo admin</button>
         </form>
       </details>
-      <p class="storage-note">Email sign-in, account creation, Google sign-in, and password reset use Firebase Authentication. Enable Email/Password and Google sign-in providers in the Firebase console, and authorize your website domain under Authentication settings.</p>
+      <p class="storage-note">Email sign-in and account creation use Firebase Authentication. In Firebase Console, open Authentication and click Get started, then enable Email/Password and Google under Sign-in method. Under Settings → Authorized domains, add 127.0.0.1 for this Live Server address.</p>
     </section>
   </main>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>

@@ -106,11 +106,11 @@
       <div class="section-heading">
         <span class="eyebrow">Community</span>
         <h2>Suggestions & Comments Box</h2>
-        <p>Leave a comment or suggestion. Comments are saved in this browser for this school demo. You can delete your own comment from its card if you need to correct it.</p>
+        <p>Leave a comment or suggestion. Comments are shared with visitors on every device.</p>
       </div>
 
       <div class="form-card">
-        <form id="comment-form" onsubmit="addComment(event)">
+        <form id="comment-form">
           <div class="form-row">
             <label for="comment-name">Your Name:</label>
             <input type="text" id="comment-name" placeholder="Type your name here" maxlength="60" required>
@@ -121,7 +121,7 @@
           </div>
           <button class="button" type="submit">Submit Comment</button>
         </form>
-        <p id="comment-status" class="form-message" role="status" aria-live="polite">Loading comments saved in this browser...</p>
+        <p id="comment-status" class="form-message" role="status" aria-live="polite">Loading shared comments...</p>
       </div>
 
       <!-- Comments list container -->

@@ -65,8 +65,8 @@
           </div>
           <div class="form-row">
             <label for="visitor-photo">Attach a photo (optional)</label>
-            <input id="visitor-photo" name="visitor-photo" type="file" accept="image/jpeg,image/png,image/webp">
-            <small class="form-help">JPG, PNG, or WebP, up to 400 KB. The photo will be shared publicly with your note.</small>
+            <input id="visitor-photo" name="visitor-photo" type="file" accept="image/*">
+            <small class="form-help">Any photo format your browser can open, up to 10 MB. Photos are automatically resized and compressed before being shared publicly with your note.</small>
           </div>
           <div class="form-message" id="form-message" role="status"></div>
           <button class="button contact-submit" type="submit">Send the note <span aria-hidden="true">→</span></button>

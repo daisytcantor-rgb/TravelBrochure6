@@ -15,23 +15,9 @@
         firebase.initializeApp(window.FIREBASE_CONFIG);
       }
       auth = firebase.auth();
-      auth.onAuthStateChanged(function () {
-        var session = getSession();
+      auth.onAuthStateChanged(function (user) {
+        var session = getSession(user);
         readyResolve(session);
-        var currentPage = window.location.pathname.split("/").pop() || "index.html";
-        var protectedPages = [
-          "index.html",
-          "about.html",
-          "destinations.html",
-          "gallery.html",
-          "contact.html",
-          "faq.html",
-          "reviews.html",
-          "admin.html"
-        ];
-        if (protectedPages.indexOf(currentPage) !== -1 && !session) {
-          window.location.replace("login.html");
-        }
       }, function (error) {
         console.error("Unable to check the signed-in account:", error);
         readyResolve(null);
@@ -71,10 +57,19 @@
       "auth/too-many-requests": "Too many attempts. Please wait a little while and try again.",
       "auth/popup-closed-by-user": "The Google sign-in window was closed before sign-in finished.",
       "auth/popup-blocked": "Your browser blocked the Google sign-in window. Allow pop-ups and try again.",
-      "auth/operation-not-allowed": "This sign-in method is not enabled in Firebase Authentication.",
-      "auth/unauthorized-domain": "This website address is not authorized in Firebase Authentication."
+      "auth/operation-not-allowed": "This sign-in method is not enabled. Enable Email/Password and Google in Firebase Authentication.",
+      "auth/unauthorized-domain": "This website address is not authorized. Add 127.0.0.1 to Firebase Authentication's authorized domains.",
+      "auth/network-request-failed": "Firebase could not connect. Check your internet connection and try again.",
+      "auth/invalid-api-key": "Firebase rejected the project API key. Check firebase-config.js against your Firebase web app settings.",
+      "auth/configuration-not-found": "Firebase Authentication has not been configured for this project. In Firebase Console, open Authentication, click Get started, and enable Email/Password (and Google if you want Google sign-in). You can use Continue as guest meanwhile.",
+      "auth/web-storage-unsupported": "This browser is blocking local storage needed to keep you signed in. Enable site storage and try again."
     };
-    return messages[error.code] || "Authentication could not be completed. Please try again.";
+    if (messages[error.code]) {
+      return messages[error.code];
+    }
+    return error.code
+      ? "Authentication failed (" + error.code + "). Check Firebase Authentication settings and try again."
+      : "Authentication failed. Check your internet connection and Firebase Authentication settings, then try again.";
   }
 
   function showFirebaseError(error) {
@@ -105,6 +100,7 @@
         var password = document.getElementById("login-password").value;
         setFormBusy(loginForm, true);
         try {
+          await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
           await auth.signInWithEmailAndPassword(email, password);
           finishSignIn();
         } catch (error) {
@@ -126,6 +122,7 @@
         var password = document.getElementById("register-password").value;
         setFormBusy(registerForm, true);
         try {
+          await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
           await auth.createUserWithEmailAndPassword(email, password);
           finishSignIn();
         } catch (error) {
@@ -168,6 +165,7 @@
         }
         googleButton.disabled = true;
         try {
+          await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
           var provider = new firebase.auth.GoogleAuthProvider();
           await auth.signInWithPopup(provider);
           finishSignIn();
@@ -194,7 +192,7 @@
     }
   }
 
-  function getSession() {
+  function getSession(currentUser) {
     var storedSession = localStorage.getItem(SESSION_KEY);
     if (storedSession) {
       try {
@@ -207,13 +205,16 @@
         localStorage.removeItem(SESSION_KEY);
       }
     }
-    if (auth && auth.currentUser) {
+    currentUser = typeof currentUser === "undefined"
+      ? auth && auth.currentUser
+      : currentUser;
+    if (currentUser) {
       return {
-        username: auth.currentUser.displayName || auth.currentUser.email,
-        email: auth.currentUser.email,
-        uid: auth.currentUser.uid,
+        username: currentUser.displayName || currentUser.email,
+        email: currentUser.email,
+        uid: currentUser.uid,
         role: "user",
-        emailVerified: auth.currentUser.emailVerified
+        emailVerified: currentUser.emailVerified
       };
     }
     return null;
